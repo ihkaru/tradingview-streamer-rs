@@ -23,6 +23,7 @@ thiserror = "2.0"
 tracing = "0.1"
 rand = "0.8"
 http = "1.0"
+reqwest = { version = "0.12", default-features = false, features = ["rustls-tls-webpki-roots", "json"] }
 
 [dev-dependencies]
 tokio = { version = "1.43", features = ["full"] }

@@ -9,6 +9,10 @@ pub enum Error {
     #[error("WebSocket transport error: {0}")]
     WebSocket(#[from] tokio_tungstenite::tungstenite::Error),
 
+    /// HTTP request error.
+    #[error("HTTP transport error: {0}")]
+    Http(#[from] reqwest::Error),
+
     /// Protocol framing or encoding error.
     #[error("Protocol error: {0}")]
     Protocol(String),

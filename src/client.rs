@@ -54,6 +54,7 @@ impl Default for ClientConfig {
 }
 
 /// TradingView WebSocket client.
+#[derive(Debug, Clone)]
 pub struct TvWebSocketClient {
     config: ClientConfig,
 }
@@ -113,21 +114,48 @@ impl TvWebSocketClient {
         session_type: SessionType,
         candle_count: u32,
     ) -> Result<mpsc::Receiver<StreamEvent>> {
+        let (_cmd_tx, event_rx, _tokens) = self
+            .start_interactive_streaming(symbol, timeframe, session_type, candle_count)
+            .await?;
+        Ok(event_rx)
+    }
+
+    /// Starts an interactive streaming session with outbound command channel and session tokens.
+    pub async fn start_interactive_streaming(
+        &self,
+        symbol: &Symbol,
+        timeframe: &Timeframe,
+        session_type: SessionType,
+        candle_count: u32,
+    ) -> Result<(mpsc::Sender<String>, mpsc::Receiver<StreamEvent>, SessionTokens)> {
         let ws_stream = self.connect().await?;
         let (event_tx, event_rx) = mpsc::channel(256);
+        let (cmd_tx, cmd_rx) = mpsc::channel(64);
         let tokens = self.config.tokens.clone();
         let config = self.config.clone();
         let sym = symbol.clone();
         let tf = timeframe.clone();
+        let session_tokens = tokens.clone();
 
         tokio::spawn(async move {
-            if let Err(e) = run_client_loop(ws_stream, config, tokens, sym, tf, session_type, candle_count, event_tx).await {
-                eprintln!("[CLIENT_LOOP_ERROR]: {e}");
+            if let Err(e) = run_client_loop(
+                ws_stream,
+                config,
+                tokens,
+                sym,
+                tf,
+                session_type,
+                candle_count,
+                event_tx,
+                cmd_rx,
+            )
+            .await
+            {
                 tracing::warn!("TradingView client loop exited: {e}");
             }
         });
 
-        Ok(event_rx)
+        Ok((cmd_tx, event_rx, session_tokens))
     }
 }
 
@@ -141,6 +169,7 @@ async fn run_client_loop(
     session_type: SessionType,
     candle_count: u32,
     event_tx: mpsc::Sender<StreamEvent>,
+    mut cmd_rx: mpsc::Receiver<String>,
 ) -> Result<()> {
     send_initialization_messages(&mut ws_stream, &config, &tokens).await?;
     send_subscription_messages(
@@ -153,35 +182,43 @@ async fn run_client_loop(
     )
     .await?;
 
-    while let Some(msg_res) = ws_stream.next().await {
-        let msg = match msg_res {
-            Ok(m) => m,
-            Err(e) => return Err(Error::WebSocket(e)),
-        };
+    loop {
+        tokio::select! {
+            Some(cmd) = cmd_rx.recv() => {
+                ws_stream.send(Message::Text(cmd.into())).await.map_err(Error::WebSocket)?;
+            }
+            msg_res = ws_stream.next() => {
+                let msg = match msg_res {
+                    Some(Ok(m)) => m,
+                    Some(Err(e)) => return Err(Error::WebSocket(e)),
+                    None => break,
+                };
 
-        match msg {
-            Message::Text(text) => {
-                let frames = parse_frames(&text)?;
-                for frame in frames {
-                    match frame {
-                        InboundFrame::Heartbeat(seq) => {
-                            let pong = format_heartbeat(seq);
-                            ws_stream.send(Message::Text(pong.into())).await.map_err(Error::WebSocket)?;
-                            let _ = event_tx.send(StreamEvent::Heartbeat(seq)).await;
-                        }
-                        InboundFrame::Message(payload) => {
-                            let events = parse_message_payload(&payload, &tokens.series_id)?;
-                            for evt in events {
-                                if event_tx.send(evt).await.is_err() {
-                                    return Ok(());
+                match msg {
+                    Message::Text(text) => {
+                        let frames = parse_frames(&text)?;
+                        for frame in frames {
+                            match frame {
+                                InboundFrame::Heartbeat(seq) => {
+                                    let pong = format_heartbeat(seq);
+                                    ws_stream.send(Message::Text(pong.into())).await.map_err(Error::WebSocket)?;
+                                    let _ = event_tx.send(StreamEvent::Heartbeat(seq)).await;
+                                }
+                                InboundFrame::Message(payload) => {
+                                    let events = parse_message_payload(&payload, &tokens.series_id)?;
+                                    for evt in events {
+                                        if event_tx.send(evt).await.is_err() {
+                                            return Ok(());
+                                        }
+                                    }
                                 }
                             }
                         }
                     }
+                    Message::Close(_) => return Err(Error::ConnectionClosed),
+                    _ => {}
                 }
             }
-            Message::Close(_) => return Err(Error::ConnectionClosed),
-            _ => {}
         }
     }
 

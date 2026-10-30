@@ -160,6 +160,11 @@ impl Symbol {
         format!("{}:{}", self.exchange, self.ticker)
     }
 
+    /// Resolves a symbol with smart fallback if parsing fails.
+    pub fn resolve(s: &str) -> Self {
+        Self::smart_parse(s).unwrap_or_else(|_| Self::new("NASDAQ", s))
+    }
+
     /// Parses a symbol string with smart exchange resolution.
     ///
     /// If an exchange prefix is provided (e.g. `"BINANCE:BTCUSDT"`, `"NYSE:IBM"`), it is respected.

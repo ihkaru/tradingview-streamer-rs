@@ -1,10 +1,13 @@
 //! Ergonomic Ticker interface modeling python's `yfinance.Ticker`.
 
 use std::str::FromStr;
+use std::time::Duration;
 use tokio::sync::mpsc;
+use crate::backfill::BackfillPager;
 use crate::error::Result;
 use crate::streamer::TvStreamer;
-use crate::types::{OhlcvCandle, QuoteUpdate, SessionType, StreamEvent, Timeframe};
+use crate::technicals::{TechnicalSummary, TechnicalsClient};
+use crate::types::{OhlcvCandle, QuoteUpdate, SessionType, StreamEvent, Symbol, Timeframe};
 
 /// Ergonomic ticker client mirroring `yfinance.Ticker` for minimal-line integration.
 #[derive(Debug, Clone)]
@@ -50,6 +53,38 @@ impl Ticker {
     /// ```
     pub async fn history_extended(&self, timeframe: impl AsRef<str>, count: u32) -> Result<Vec<OhlcvCandle>> {
         self.fetch_internal(timeframe.as_ref(), count, SessionType::Extended).await
+    }
+
+    /// Deep historical backfill fetching thousands of bars backwards using automated pagination.
+    pub async fn backfill(&self, timeframe: impl AsRef<str>, target_count: usize) -> Result<Vec<OhlcvCandle>> {
+        let sym = Symbol::resolve(&self.symbol_str);
+        let tf = Timeframe::from_str(timeframe.as_ref())?;
+        let pager = BackfillPager::new(sym, tf, SessionType::Regular, Duration::from_secs(30));
+        pager.fetch_deep_history(target_count).await
+    }
+
+    /// Deep historical backfill with Extended Trading Hours.
+    pub async fn backfill_extended(&self, timeframe: impl AsRef<str>, target_count: usize) -> Result<Vec<OhlcvCandle>> {
+        let sym = Symbol::resolve(&self.symbol_str);
+        let tf = Timeframe::from_str(timeframe.as_ref())?;
+        let pager = BackfillPager::new(sym, tf, SessionType::Extended, Duration::from_secs(30));
+        pager.fetch_deep_history(target_count).await
+    }
+
+    /// Fetches server-evaluated technical rating consensus and indicators for the ticker.
+    pub async fn technical_rating(&self, timeframe: impl AsRef<str>) -> Result<TechnicalSummary> {
+        TechnicalsClient::new().summary(&self.symbol_str, timeframe).await
+    }
+
+    /// Fetches specific indicator values for the ticker on the given timeframe.
+    pub async fn indicators(
+        &self,
+        indicators: &[impl AsRef<str>],
+        timeframe: impl AsRef<str>,
+    ) -> Result<std::collections::HashMap<String, f64>> {
+        TechnicalsClient::new()
+            .indicators(&self.symbol_str, timeframe, indicators)
+            .await
     }
 
     /// Returns a live real-time event stream for this ticker.

@@ -104,6 +104,68 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 }
 ```
 
+### 4. Technical Summary Ratings & Indicators (1-Liner)
+Fetch server-evaluated consensus ratings (`Strong Buy`, `Buy`, `Neutral`, `Sell`, `Strong Sell`) and indicator values across multiple timeframes:
+```rust
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let summary = tradingview_streamer::technical_rating("AAPL").await?;
+    println!("AAPL Overall Rating: {}", summary.all.as_str());
+    println!("Moving Averages: {}, Oscillators: {}", summary.moving_averages.as_str(), summary.oscillators.as_str());
+    println!("RSI: {:?}, MACD: {:?}", summary.rsi(), summary.macd());
+    Ok(())
+}
+```
+
+### 5. Pre-Market & After-Hours Movers Rankings
+Instantly discover pre-market liquidity surges, top gainers, and most active assets:
+```rust
+use tradingview_streamer::movers;
+
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let pre_market = movers::pre_market_gainers(10).await?;
+    for stock in pre_market {
+        println!("{}: ${:.2} (+{:.2}%) Vol: {}", stock.symbol, stock.price, stock.premarket_change.unwrap_or(0.0), stock.volume);
+    }
+    Ok(())
+}
+```
+
+### 6. Deep Historical Backfill & Automated Paging (>10,000 Bars)
+Iteratively page backwards using TradingView's `request_more_data` RPC:
+```rust
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let bars = tradingview_streamer::backfill("AAPL", "1m", 10_000).await?;
+    println!("Backfilled {} 1-minute bars backwards from genesis", bars.len());
+    Ok(())
+}
+```
+
+### 7. Financial Scanner & Multi-Market Screener
+Run type-safe queries across 19 global asset classes with rich AST filters:
+```rust
+use tradingview_streamer::scanner::{Filter, ScannerBuilder, ScannerMarket, SortOrder};
+
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let results = ScannerBuilder::new(ScannerMarket::America)
+        .filter(Filter::new("close").greater(100.0))
+        .filter(Filter::new("RSI").less(35.0))
+        .sort_by("volume", SortOrder::Desc)
+        .limit(20)
+        .execute()
+        .await?;
+
+    println!("Found {} instruments matching oversold criteria", results.total_count);
+    for item in results.items {
+        println!("{} Close: ${:.2}", item.symbol, item.close().unwrap_or(0.0));
+    }
+    Ok(())
+}
+```
+
 ### 4. Smart Symbol Resolution (Zero Prefix Frustration)
 Pass tickers directly; `tradingview-streamer` infers the exchange automatically:
 - `"AAPL"` / `"TSLA"` $\rightarrow$ `NASDAQ:AAPL`
@@ -179,8 +241,12 @@ The evolution of `tradingview-streamer` toward enterprise and quantitative parit
 
 - **[Master Strategic Roadmap](ROADMAP.md)**: Full timeline, release cadence, and phase matrix dashboard.
 - **[Phase 001 - Core Engine & ETH (Completed)](docs/phases/001_core_streamer_and_extended_hours.md)**: Resolution of `mnwato/tradingview-scraper#63`.
-- **[Phase 002 - Indicators & Studies (Planned)](docs/phases/002_technical_indicators_and_studies.md)**: Server-side Volume, RSI, MACD ingestion.
-- **[Phase 003 - Historical Backfill (Planned)](docs/phases/003_deep_historical_backfill_and_paging.md)**: Backward timescale paging for >10,000 bars.
+- **[Phase 002 - Indicators & Studies (Completed)](docs/phases/002_technical_indicators_and_studies.md)**: Server-side Volume, RSI, MACD study ingestion (`du`).
+- **[Phase 003 - Historical Backfill (Completed)](docs/phases/003_deep_historical_backfill_and_paging.md)**: Backward timescale paging for >10,000 bars.
+- **[Phase 008 - Quote Session & Level 1 Tape (Completed)](docs/phases/008_quote_session_and_ticker_tape.md)**: Real-time ticker tape (`lp`, `bid`, `ask`, `rtc`, `chp`).
+- **[Phase 009 - Financial Scanner & Screener (Completed)](docs/phases/009_scanner_and_screener_engine.md)**: 19 markets with type-safe filter expressions.
+- **[Phase 010 - Market Movers & Extended Hours (Completed)](docs/phases/010_market_movers_and_extended_hours_leaders.md)**: Pre-market and after-hours leaders.
+- **[Phase 011 - Technical Summary Ratings (Completed)](docs/phases/011_technical_summary_and_indicator_matrix.md)**: Server-evaluated ratings (`Recommend.All`, 80+ indicator fields).
 - **[Phase 004 - Symbol Multiplexing (Backlog)](docs/phases/004_multi_symbol_multiplexing_and_pool.md)**: Single-socket portfolio monitoring.
 - **[Phase 005 - Zero-Copy SIMD & Polars/Arrow (Backlog)](docs/phases/005_simd_json_and_polars_arrow_export.md)**: High-frequency zero-copy analytical export.
 - **[Phase 006 - Resilient Supervisor (Backlog)](docs/phases/006_resilient_supervisor_and_proxy_mesh.md)**: Autonomous reconnection and proxy mesh rotation.

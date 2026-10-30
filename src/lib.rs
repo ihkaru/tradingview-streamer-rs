@@ -36,20 +36,34 @@
 //! }
 //! ```
 
+pub mod backfill;
 pub mod client;
 pub mod error;
+pub mod movers;
 pub mod protocol;
 pub mod quote;
+pub mod scanner;
 pub mod session;
 pub mod streamer;
+pub mod technicals;
 pub mod ticker;
 pub mod types;
 
 // Re-exports of primary ergonomic interfaces
+pub use backfill::BackfillPager;
 pub use client::{ClientConfig, TvWebSocketClient, DEFAULT_TRADINGVIEW_WS_URL};
 pub use error::{Error, Result};
+pub use movers::{MoversClient, MoverCategory, MoverRecord};
+pub use scanner::{
+    scanner, Filter, FilterCondition, FilterOperation, ScannerBuilder, ScannerClient,
+    ScannerMarket, ScannerOptions, ScannerResponse, ScreenedItem, SortConfig, SortOrder,
+};
 pub use session::{generate_session_id, SessionTokens};
 pub use streamer::{TvStreamer, TvStreamerBuilder};
+pub use technicals::{
+    rating as technical_rating, rating_tf as technical_rating_tf, TechnicalRating,
+    TechnicalSummary, TechnicalsClient,
+};
 pub use ticker::Ticker;
 pub use types::{
     OhlcvCandle, QuoteUpdate, SessionType, StreamEvent, Symbol, Timeframe,
@@ -112,10 +126,33 @@ pub async fn quote_extended(symbol: impl AsRef<str>) -> Result<QuoteUpdate> {
     Ticker::new(symbol.as_ref()).quote_extended().await
 }
 
+/// Backfills deep historical OHLCV bars across multiple thousands of candles backwards.
+pub async fn backfill(
+    symbol: impl AsRef<str>,
+    timeframe: impl AsRef<str>,
+    count: usize,
+) -> Result<Vec<OhlcvCandle>> {
+    Ticker::new(symbol.as_ref()).backfill(timeframe, count).await
+}
+
+/// Backfills deep historical OHLCV bars with Extended Trading Hours (ETH).
+pub async fn backfill_extended(
+    symbol: impl AsRef<str>,
+    timeframe: impl AsRef<str>,
+    count: usize,
+) -> Result<Vec<OhlcvCandle>> {
+    Ticker::new(symbol.as_ref())
+        .backfill_extended(timeframe, count)
+        .await
+}
+
 /// Convenient prelude module re-exporting essential types and functions.
 pub mod prelude {
     pub use crate::{
-        download, download_extended, quote, quote_extended, ticker,
-        OhlcvCandle, QuoteUpdate, SessionType, StreamEvent, Symbol, Ticker, Timeframe, TvStreamer,
+        backfill, backfill_extended, download, download_extended, quote, quote_extended,
+        scanner, technical_rating, technical_rating_tf, ticker,
+        Filter, MoverCategory, MoverRecord, OhlcvCandle, QuoteUpdate, ScannerMarket,
+        SessionType, StreamEvent, Symbol, TechnicalRating, TechnicalSummary, Ticker,
+        Timeframe, TvStreamer,
     };
 }

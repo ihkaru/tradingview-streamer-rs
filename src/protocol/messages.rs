@@ -138,6 +138,11 @@ pub fn create_study(
     )
 }
 
+/// Builds `request_more_data` command message to page historical bars backward.
+pub fn request_more_data(chart_session: &str, series_id: &str, count: u32) -> String {
+    encode_rpc("request_more_data", json!([chart_session, series_id, count]))
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
