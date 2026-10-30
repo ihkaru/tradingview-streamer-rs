@@ -41,6 +41,7 @@ pub mod calendar;
 pub mod client;
 pub mod discovery;
 pub mod error;
+pub mod export;
 pub mod fundamentals;
 pub mod movers;
 pub mod news;
@@ -62,6 +63,7 @@ pub use calendar::{CalendarClient, DividendEvent, EarningsEvent};
 pub use client::{ClientConfig, TvWebSocketClient, DEFAULT_TRADINGVIEW_WS_URL};
 pub use discovery::{ArbitrageSpread, DiscoveryClient, MarketVenue};
 pub use error::{Error, Result};
+pub use export::ColumnarCandles;
 pub use fundamentals::{
     financials, overview, profile, valuation, CompanyProfile, DividendMetrics, FinancialMetrics,
     FundamentalOverview, FundamentalsClient, ValuationMetrics,
@@ -175,7 +177,7 @@ pub mod prelude {
         backfill, backfill_extended, download, download_extended, financials, ideas, minds, news,
         overview, portfolio_quotes, profile, quote, quote_extended, scanner, sentiment,
         stream_resilient, technical_rating, technical_rating_tf, ticker, valuation,
-        CircuitBreaker, CircuitState, CompanyProfile, ConnectionPool, DividendEvent,
+        CircuitBreaker, CircuitState, ColumnarCandles, CompanyProfile, ConnectionPool, DividendEvent,
         DividendMetrics, EarningsEvent, ExponentialBackoff, Filter, FinancialMetrics,
         FundamentalOverview, IdeaSort, MarketVenue, MindAuthor, MindPost, MindsSort,
         MoverCategory, MoverRecord, MultiQuoteEvent, NewsArticle, OhlcvCandle, PoolConfig,
