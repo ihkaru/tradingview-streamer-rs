@@ -10,7 +10,7 @@ categories = ["finance", "network-programming", "asynchronous"]
 readme = "README.md"
 repository = "https://github.com/ihkaru/tradingview-streamer-rs"
 documentation = "https://docs.rs/tradingview-streamer"
-include = ["src/**/*", "Cargo.toml", "README.md", "LICENSE"]
+include = ["src/**/*", "tests/**/*", "Cargo.toml", "README.md", "LICENSE"]
 
 [dependencies]
 tokio = { version = "1.43", features = ["rt-multi-thread", "macros", "time", "sync", "net"] }
