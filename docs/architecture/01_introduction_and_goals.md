@@ -1,7 +1,7 @@
 # 01 Introduction and Goals
 
 > [!INFO] **Architecture Provenance & Freshness**
-> - **Verified Commit**: `bf0aeee` (branch: `main`)
+> - **Verified Commit**: `a93900d` (branch: `main`)
 > - **Verified Timestamp**: `2026-10-30T18:45:58+07:00`
 > - **Tracked Paths**: `src/`, `tests/`, `Cargo.toml`
 > - **Drift Status**: `verified`
@@ -28,3 +28,6 @@ The library provides:
 | Quantitative Researchers | Accurate pre-market and after-hours OHLCV bars without timestamp skew or missing volatility gaps. |
 | Systems Engineers | Low memory footprint (<10MB RAM), async concurrency with Tokio, and hermetic parallel testing. |
 | Downstream Crate Consumers | Simple, builder-based facade requiring minimal boilerplate to stream candles. |
+
+## 1.4 Strategic Roadmap Alignment
+Long-term feature evolution, indicator ingestion, historical paging, and FFI bindings are governed by the graduated milestone phases defined in [ROADMAP.md](../../ROADMAP.md) and detailed in [docs/phases/](../phases/README.md).

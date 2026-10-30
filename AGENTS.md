@@ -66,3 +66,13 @@ arc42-lint docs/architecture
   - `fix(...)`: Triggers patch version bump (bug fix).
   - `feat(...)!` or `BREAKING CHANGE:`: Triggers major version bump.
   - Automated by `release-plz` and checked by `cargo-semver-checks`.
+
+## 5. Roadmap & Modular Phase Architecture
+All ongoing feature tasks are organized into numbered phase documents:
+- Master Dashboard: [ROADMAP.md](ROADMAP.md)
+- Phase Specifications: `docs/phases/<NNN>_<slug>.md` (e.g. [001](docs/phases/001_core_streamer_and_extended_hours.md), [002](docs/phases/002_technical_indicators_and_studies.md), [003](docs/phases/003_deep_historical_backfill_and_paging.md))
+- When implementing a new feature or phase, an agent MUST:
+  1. Review the corresponding `docs/phases/<NNN>_*.md` file.
+  2. Implement code adhering to `< 350 lines` per file and zero-mock constraints.
+  3. Verify all Acceptance Criteria (`AC-xx`) defined in the phase file.
+  4. Run the full Gauntlet and audit architecture with `arc42-lint docs/architecture`.

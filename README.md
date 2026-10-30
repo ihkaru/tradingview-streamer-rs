@@ -147,6 +147,23 @@ arc42-lint docs/architecture
 
 ---
 
+## 🗺️ Roadmap & Graduated Phases
+
+The evolution of `tradingview-streamer` toward enterprise and quantitative parity is managed via modular, numbered phase specifications:
+
+- **[Master Strategic Roadmap](ROADMAP.md)**: Full timeline, release cadence, and phase matrix dashboard.
+- **[Phase 001 - Core Engine & ETH (Completed)](docs/phases/001_core_streamer_and_extended_hours.md)**: Resolution of `mnwato/tradingview-scraper#63`.
+- **[Phase 002 - Indicators & Studies (Planned)](docs/phases/002_technical_indicators_and_studies.md)**: Server-side Volume, RSI, MACD ingestion.
+- **[Phase 003 - Historical Backfill (Planned)](docs/phases/003_deep_historical_backfill_and_paging.md)**: Backward timescale paging for >10,000 bars.
+- **[Phase 004 - Symbol Multiplexing (Backlog)](docs/phases/004_multi_symbol_multiplexing_and_pool.md)**: Single-socket portfolio monitoring.
+- **[Phase 005 - Zero-Copy SIMD & Polars/Arrow (Backlog)](docs/phases/005_simd_json_and_polars_arrow_export.md)**: High-frequency zero-copy analytical export.
+- **[Phase 006 - Resilient Supervisor (Backlog)](docs/phases/006_resilient_supervisor_and_proxy_mesh.md)**: Autonomous reconnection and proxy mesh rotation.
+- **[Phase 007 - Python PyO3 Bindings (Backlog)](docs/phases/007_python_pyo3_and_c_ffi_bindings.md)**: Native Python package (`pip install tradingview-streamer`).
+
+See [`docs/phases/`](docs/phases/) for all numbered phase implementation documents.
+
+---
+
 ## 🏛️ Architecture Documentation
 
 Complete architecture documentation is organized according to the international standard **arc42**:
