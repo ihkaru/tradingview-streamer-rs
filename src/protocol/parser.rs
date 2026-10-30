@@ -132,7 +132,7 @@ fn extract_study_events(params: &[Value], events: &mut Vec<StreamEvent>) {
 fn extract_quote_update(params: &[Value]) -> Option<QuoteUpdate> {
     let payload = params.get(1)?.as_object()?;
     let v_map = payload.get("v")?.as_object()?;
-    let symbol = payload.get("n").and_then(Value::as_str).map(ToString::to_string);
+    let symbol = payload.get("n").and_then(Value::as_str).map(clean_symbol_name);
 
     Some(QuoteUpdate {
         symbol,
@@ -154,6 +154,18 @@ fn extract_quote_update(params: &[Value]) -> Option<QuoteUpdate> {
         last_price_time: v_map.get("lp_time").and_then(Value::as_i64),
         raw_fields: Value::Object(v_map.clone()),
     })
+}
+
+/// Normalizes symbol names, unpacking serialized JSON specs (`={"symbol":...}`) into plain symbols.
+fn clean_symbol_name(raw: &str) -> String {
+    if let Some(spec) = raw.strip_prefix('=') {
+        if let Ok(val) = serde_json::from_str::<Value>(spec) {
+            if let Some(sym) = val.get("symbol").and_then(Value::as_str) {
+                return sym.to_string();
+            }
+        }
+    }
+    raw.to_string()
 }
 
 /// Extracts `symbol_resolved` metadata.

@@ -25,7 +25,7 @@ flowchart TD
     end
 
     subgraph S3["Phase 3: High-Throughput & Analytical Pipelines (v0.4 - v0.5)"]
-        P004["004: Multi-Symbol Multiplexing & Connection Pooling"]
+        P004["004: Multi-Symbol Multiplexing & Connection Pooling [COMPLETED]"]
         P005["005: Zero-Copy SIMD Deserialization & Polars/Arrow"]
         P012["012: Symbol Fundamentals & Financial Statements [COMPLETED]"]
     end
@@ -57,7 +57,7 @@ flowchart TD
 | **[Phase 001](docs/phases/001_core_streamer_and_extended_hours.md)** | Core WebSocket Engine & Extended Trading Hours | `v0.1.0` | `COMPLETED` | Fix for `mnwato/tradingview-scraper#63` via `SessionType::Extended`. |
 | **[Phase 002](docs/phases/002_technical_indicators_and_studies.md)** | Technical Indicators & Built-in Studies Ingestion | `v0.2.0` | `COMPLETED` | Automated `create_study` RPC and multi-indicator streaming (`du`). |
 | **[Phase 003](docs/phases/003_deep_historical_backfill_and_paging.md)** | Deep Historical Backfill & Timescale Paging | `v0.3.0` | `COMPLETED` | Automated backward paging (`request_more_data`) for >10,000 bars. |
-| **[Phase 004](docs/phases/004_multi_symbol_multiplexing_and_pool.md)** | Multi-Symbol Multiplexing & Connection Pooling | `v0.4.0` | `BACKLOG` | Single-socket multi-ticker dispatch and dynamic subscription pool. |
+| **[Phase 004](docs/phases/004_multi_symbol_multiplexing_and_pool.md)** | Multi-Symbol Multiplexing & Connection Pooling | `v0.4.0` | `COMPLETED` | Single-socket multi-ticker dispatch and dynamic subscription pool. |
 | **[Phase 005](docs/phases/005_simd_json_and_polars_arrow_export.md)** | Zero-Copy SIMD Deserialization & Polars/Arrow | `v0.5.0` | `BACKLOG` | Resolution of `DEBT-01` via SIMD JSON and Apache Arrow export. |
 | **[Phase 006](docs/phases/006_resilient_supervisor_and_proxy_mesh.md)** | Resilient Supervisor & Proxy Mesh Rotation | `v0.6.0` | `BACKLOG` | Resolution of `RISK-01` via exponential jitter and SOCKS5 proxy pool. |
 | **[Phase 007](docs/phases/007_python_pyo3_and_c_ffi_bindings.md)** | Python (PyO3) & C-ABI Foreign Function Interface | `v0.7.0` | `BACKLOG` | `pip install tradingview-streamer` native Python package. |

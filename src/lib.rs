@@ -44,6 +44,7 @@ pub mod error;
 pub mod fundamentals;
 pub mod movers;
 pub mod news;
+pub mod pool;
 pub mod protocol;
 pub mod quote;
 pub mod scanner;
@@ -66,6 +67,7 @@ pub use fundamentals::{
 };
 pub use movers::{MoversClient, MoverCategory, MoverRecord};
 pub use news::{news, news_limit, NewsArticle, NewsClient};
+pub use pool::{portfolio_quotes, ConnectionPool, MultiQuoteEvent, PoolConfig, SymbolRouter};
 pub use scanner::{
     scanner, Filter, FilterCondition, FilterOperation, ScannerBuilder, ScannerClient,
     ScannerMarket, ScannerOptions, ScannerResponse, ScreenedItem, SortConfig, SortOrder,
@@ -166,12 +168,13 @@ pub async fn backfill_extended(
 pub mod prelude {
     pub use crate::{
         backfill, backfill_extended, download, download_extended, financials, ideas, minds, news,
-        overview, profile, quote, quote_extended, scanner, sentiment, technical_rating,
-        technical_rating_tf, ticker, valuation, CompanyProfile, DividendEvent, DividendMetrics,
-        EarningsEvent, Filter, FinancialMetrics, FundamentalOverview, IdeaSort, MarketVenue,
-        MindAuthor, MindPost, MindsSort, MoverCategory, MoverRecord, NewsArticle, OhlcvCandle,
+        overview, portfolio_quotes, profile, quote, quote_extended, scanner, sentiment,
+        technical_rating, technical_rating_tf, ticker, valuation, CompanyProfile, ConnectionPool,
+        DividendEvent, DividendMetrics, EarningsEvent, Filter, FinancialMetrics,
+        FundamentalOverview, IdeaSort, MarketVenue, MindAuthor, MindPost, MindsSort,
+        MoverCategory, MoverRecord, MultiQuoteEvent, NewsArticle, OhlcvCandle, PoolConfig,
         QuoteUpdate, ScannerMarket, SentimentBias, SentimentReport, SessionType, StreamEvent,
-        Symbol, TechnicalRating, TechnicalSummary, Ticker, Timeframe, TradeIdea, TvStreamer,
-        ValuationMetrics,
+        Symbol, SymbolRouter, TechnicalRating, TechnicalSummary, Ticker, Timeframe, TradeIdea,
+        TvStreamer, ValuationMetrics,
     };
 }

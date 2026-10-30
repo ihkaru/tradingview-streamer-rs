@@ -143,6 +143,16 @@ pub fn request_more_data(chart_session: &str, series_id: &str, count: u32) -> St
     encode_rpc("request_more_data", json!([chart_session, series_id, count]))
 }
 
+/// Builds `remove_series` command message to unsubscribe a series calculation.
+pub fn remove_series(chart_session: &str, series_id: &str) -> String {
+    encode_rpc("remove_series", json!([chart_session, series_id]))
+}
+
+/// Builds `quote_remove_symbols` command message to unsubscribe a symbol from quote session.
+pub fn quote_remove_symbols(quote_session: &str, symbol: &str) -> String {
+    encode_rpc("quote_remove_symbols", json!([quote_session, symbol]))
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

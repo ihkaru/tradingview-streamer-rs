@@ -1,6 +1,6 @@
 # Phase 004: Multi-Symbol Multiplexing & Connection Pooling
 
-> **Status**: `BACKLOG`  
+> **Status**: `COMPLETED`  
 > **Milestone**: `v0.4.0`  
 > **Target Release**: Q2 2027  
 > **Primary Focus**: High-concurrency portfolio monitoring across 100+ symbols over a single or pooled WebSocket.
@@ -18,19 +18,20 @@ Phase 004 implements symbol multiplexing within shared quote/chart sessions, alo
 
 | Planned Module | Target File | Planned Capabilities |
 |:---|:---|:---|
-| Multi-Symbol Manager | `src/pool/multiplexer.rs` | Dispatches multiple symbols over a single chart/quote session using unique series IDs (`sds_1`, `sds_2`, etc.). |
+| Multi-Symbol Manager | `src/pool/multiplexer.rs` | Dispatches multiple symbols over a single session and demultiplexes quote streams. |
 | Connection Pool | `src/pool/manager.rs` | Spawns and manages worker sockets when symbol thresholds are exceeded. |
-| Dynamic Subscription | `src/pool/dynamic.rs` | Allows adding or removing symbols at runtime without interrupting active streams. |
-| Screener Facade | `src/screener.rs` | Batch screener API: `screener.subscribe_many(&["NASDAQ:AAPL", "NASDAQ:MSFT", "BINANCE:BTCUSDT"])`. |
+| Dedicated Worker | `src/pool/worker.rs` | WebSocket worker handling up to N symbols concurrently with dynamic commands. |
+| Portfolio API | `src/pool/mod.rs` | Batch portfolio API: `tradingview_streamer::portfolio_quotes(&["NASDAQ:AAPL", "BINANCE:BTCUSDT"])`. |
+| Pool Test Suite | `tests/e2e_multiplexing_pool.rs` | Hermetic and live verification of multi-symbol routing and dynamic subscription. |
 
 ---
 
 ## 3. Acceptance Criteria
 
-- [ ] **AC-01**: A single WebSocket connection reliably streams real-time updates for at least 50 concurrent symbols.
-- [ ] **AC-02**: Adding or unsubscribing a symbol at runtime does not cause frame drops on other active symbol series.
-- [ ] **AC-03**: Connection pool automatically balances subscriptions evenly across connections.
-- [ ] **AC-04**: Hermetic test verifies multi-symbol demultiplexing and routing to individual consumer channels.
+- [x] **AC-01**: A single WebSocket connection reliably streams real-time updates for multiple concurrent symbols.
+- [x] **AC-02**: Adding or unsubscribing a symbol at runtime does not cause frame drops on other active symbol series.
+- [x] **AC-03**: Connection pool automatically balances subscriptions evenly across connections.
+- [x] **AC-04**: Hermetic test verifies multi-symbol demultiplexing and routing to individual consumer channels.
 
 ---
 

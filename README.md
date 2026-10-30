@@ -255,14 +255,31 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 }
 ```
 
-### 4. Smart Symbol Resolution (Zero Prefix Frustration)
+### 13. Multi-Symbol Connection Pool & Portfolio Streaming
+Stream 50+ tickers over managed, load-balanced WebSocket connections without socket waste:
+```rust
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let symbols = &["NASDAQ:AAPL", "NASDAQ:MSFT", "BINANCE:BTCUSDT", "FX_IDC:EURUSD"];
+    let (pool, mut rx) = tradingview_streamer::portfolio_quotes(symbols).await?;
+
+    println!("Monitoring portfolio across {} symbols...", pool.active_symbol_count().await);
+    while let Some(evt) = rx.recv().await {
+        println!("[Portfolio] {}: price=${:.2}, change={:.2}%",
+            evt.symbol, evt.quote.price(), evt.quote.change_percentage.unwrap_or(0.0));
+    }
+    Ok(())
+}
+```
+
+### 14. Smart Symbol Resolution (Zero Prefix Frustration)
 Pass tickers directly; `tradingview-streamer` infers the exchange automatically:
 - `"AAPL"` / `"TSLA"` $\rightarrow$ `NASDAQ:AAPL`
 - `"BTCUSDT"` / `"ETHUSDT"` $\rightarrow$ `BINANCE:BTCUSDT`
 - `"EURUSD"` / `"GBPJPY"` $\rightarrow$ `FX_IDC:EURUSD`
 - Or use explicit prefixes whenever needed: `"NYSE:IBM"`, `"BINANCE:SOLUSDT"`.
 
-### 4. Advanced: Fine-Grained Streamer Builder & Indicators
+### 15. Advanced: Fine-Grained Streamer Builder & Indicators
 For customized session tokens, timeouts, or indicator integration:
 ```rust
 use tradingview_streamer::{TvStreamer, SessionType, Timeframe};

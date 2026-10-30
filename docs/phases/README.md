@@ -30,7 +30,7 @@ stateDiagram-v2
 | [001](001_core_streamer_and_extended_hours.md) | Core WebSocket Engine & Extended Trading Hours (ETH) | `v0.1.0` | `COMPLETED` | `mnwato/tradingview-scraper#63` (ETH support) |
 | [002](002_technical_indicators_and_studies.md) | Technical Indicators & Built-in Studies Ingestion | `v0.2.0` | `COMPLETED` | `streamer.py` (`create_study` WebSocket RPC) |
 | [003](003_deep_historical_backfill_and_paging.md) | Deep Historical Backfill & Timescale Paging | `v0.3.0` | `COMPLETED` | `streamer.py` (`request_more_data` backfill) |
-| [004](004_multi_symbol_multiplexing_and_pool.md) | Multi-Symbol Multiplexing & Connection Pooling | `v0.4.0` | `BACKLOG` | High-concurrency socket pooling |
+| [004](004_multi_symbol_multiplexing_and_pool.md) | Multi-Symbol Multiplexing & Connection Pooling | `v0.4.0` | `COMPLETED` | High-concurrency socket pooling |
 | [005](005_simd_json_and_polars_arrow_export.md) | Zero-Copy SIMD Deserialization & Polars/Arrow Integration | `v0.5.0` | `BACKLOG` | `DEBT-01` SIMD acceleration & Arrow export |
 | [006](006_resilient_supervisor_and_proxy_mesh.md) | Resilient Supervisor, Circuit Breaker & Proxy Rotation | `v0.6.0` | `BACKLOG` | `RISK-01` Proxy mesh & auto-healing |
 | [007](007_python_pyo3_and_c_ffi_bindings.md) | Python (PyO3) & C-ABI Foreign Function Interface | `v0.7.0` | `BACKLOG` | Native PyO3 bindings for Python ecosystem |
