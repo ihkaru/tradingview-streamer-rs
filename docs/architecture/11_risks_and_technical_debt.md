@@ -10,8 +10,10 @@
 
 | Risk ID | Title | Impact | Likelihood | Mitigation Strategy |
 |:---|:---|:---:|:---:|:---|
-| `RISK-01` | Cloudflare Rate Limiting / 429 Errors | High | Medium | Enforce staggered delays, circuit breaker, and connection pooling (addressed in [Phase 006](../phases/006_resilient_supervisor_and_proxy_mesh.md)). |
+| `RISK-01` | Cloudflare WebSocket Rate Limiting / 429 Errors | High | Medium | Enforce staggered delays, circuit breaker, and connection pooling (addressed in [Phase 006](../phases/006_resilient_supervisor_and_proxy_mesh.md)). |
 | `RISK-02` | Rustls Crypto Provider Configuration Mismatch | Medium | Low | Explicitly initialize Ring default crypto provider (`install_default`) inside `TvWebSocketClient::connect`. |
+| `RISK-03` | TradingView Scanner REST Rate Limiting | High | Medium | Cache screener responses with configurable TTL and integrate HTTP exponential backoff. |
+| `RISK-04` | Undocumented Scanner Field Schema Changes | Medium | Low | Implement lenient JSON deserialization with fallback defaults and automated schema drift tests. |
 
 ## 11.2 Technical Debt Ledger
 

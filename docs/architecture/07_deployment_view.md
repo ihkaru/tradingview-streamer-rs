@@ -18,16 +18,24 @@ graph TD
             ProtocolEngine["ProtocolEngine"]
             SessionManager["SessionManager"]
             DomainModels["DomainModels"]
+            ScannerClient["ScannerClient"]
+            QuoteStreamer["QuoteStreamer"]
+            TechnicalsEngine["TechnicalsEngine"]
         end
         OSNetwork["OS Network Stack / TLS"]
     end
 
     subgraph Cloud["External Cloud Services"]
         TVEndpoint["TradingView WebSocket Cluster (data.tradingview.com:443)"]
+        TVScannerEndpoint["TradingView Scanner Cluster (scanner.tradingview.com:443)"]
     end
 
     TvWebSocketClient --> OSNetwork
+    ScannerClient --> OSNetwork
+    TechnicalsEngine --> OSNetwork
+    QuoteStreamer --> TvWebSocketClient
     OSNetwork -- "TLS 1.3 / WSS" --> TVEndpoint
+    OSNetwork -- "HTTPS REST" --> TVScannerEndpoint
 ```
 
 ## 7.2 Building Block Deployment Mapping
@@ -39,3 +47,6 @@ graph TD
 | ProtocolEngine | Inline compiled code within Tokio worker threads. | Ephemeral heap allocations for JSON frames. |
 | SessionManager | Local random generator initialized on demand. | Minimal stack footprint. |
 | DomainModels | Strongly typed Rust structs passed across async channels. | Zero-copy references where possible. |
+| ScannerClient | Async HTTP client with connection pool. | Reused HTTP/1.1 or HTTP/2 keep-alive socket. |
+| QuoteStreamer | Stream demultiplexer running on WebSocket task. | Minimal event dispatch overhead. |
+| TechnicalsEngine | Query mapper calling ScannerClient. | Stateless transformation layer. |

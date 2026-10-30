@@ -42,3 +42,37 @@ sequenceDiagram
     Client->>TV: ~m~5~m~~h~42
     Note over TV: Session remains active
 ```
+
+## 6.3 Scenario 3 - Level 1 Quote Session & Ticker Tape Streaming
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor App as Consumer App
+    participant Quote as QuoteStreamer
+    participant Client as TvWebSocketClient
+    participant TV as TradingView Server
+
+    App->>Quote: stream_quotes(["NASDAQ:AAPL", "BINANCE:BTCUSDT"])
+    Quote->>Client: quote_create_session("qs_...")
+    Quote->>Client: quote_set_fields("qs_...", ["lp", "ch", "chp", "rtc", "volume"])
+    Quote->>Client: quote_fast_symbols("qs_...", ["NASDAQ:AAPL", "BINANCE:BTCUSDT"])
+    TV-->>Client: qsd (Quote Session Data packet)
+    Client-->>Quote: StreamEvent::Quote(QuoteUpdate)
+    Quote-->>App: Yield QuoteUpdate (lp: 225.50, rtc: +0.45%)
+```
+
+## 6.4 Scenario 4 - Financial Scanner & Screener Query
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor App as Consumer App
+    participant Scanner as ScannerClient
+    participant TVScanner as TradingView Scanner API
+
+    App->>Scanner: screen(Market::America, filter: [RSI < 30, Cap > 10B])
+    Scanner->>TVScanner: POST /america/scan (JSON payload, Range: [0, 50])
+    TVScanner-->>Scanner: 200 OK (totalCount: 42, symbols: [...])
+    Scanner-->>App: Ok(Vec<ScreenedSymbol>)
+```
