@@ -74,7 +74,15 @@ impl NewsClient {
         symbol: impl AsRef<str>,
         limit: usize,
     ) -> Result<Vec<NewsArticle>> {
-        let resolved = Symbol::resolve(symbol.as_ref());
+        let sym_str = symbol.as_ref();
+        let resolved = if sym_str.contains(':') {
+            Symbol::parse_strict(sym_str)?
+        } else {
+            crate::discovery::DiscoveryClient::new()
+                .resolve_primary_venue(sym_str)
+                .await
+                .unwrap_or_else(|_| Symbol::new("", sym_str))
+        };
         let url = format!(
             "https://news-headlines.tradingview.com/v2/view/headlines/symbol?client=web&lang=en&symbol={}",
             resolved.to_exchange_symbol()

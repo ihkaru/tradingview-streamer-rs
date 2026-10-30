@@ -13,7 +13,8 @@
 | `RISK-01` | Cloudflare WebSocket Rate Limiting / 429 Errors | High | Medium | Fully mitigated in Phase 006 (`src/supervisor/`) via full-jitter exponential backoff, circuit breaker state machine, and proxy mesh rotation. |
 | `RISK-02` | Rustls Crypto Provider Configuration Mismatch | Medium | Low | Explicitly initialize Ring default crypto provider (`install_default`) inside `TvWebSocketClient::connect`. |
 | `RISK-03` | TradingView Scanner REST Rate Limiting | High | Medium | Cache screener responses with configurable TTL and integrate HTTP exponential backoff. |
-| `RISK-04` | Undocumented Scanner Field Schema Changes | Medium | Low | Implement lenient JSON deserialization with fallback defaults and automated schema drift tests. |
+| `RISK-04` | Dynamic Venue Lookup Network Overhead & Scanner Rate Limits | Medium | Low | Mitigated via `CON-08`: explicit `EXCHANGE:TICKER` prefixes bypass network resolution; cached volume lookups and client timeouts prevent latency spikes. |
+| `RISK-05` | Cross-Exchange Venue Ambiguity & Ticker Collisions | High | Medium | Mitigated via `CON-08` and `ADR-04`: strict `EXCHANGE:TICKER` validation, consumer default exchanges, and dynamic scanner resolution based on 24h trading volume. |
 
 ## 11.2 Technical Debt Ledger
 

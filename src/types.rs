@@ -155,67 +155,86 @@ impl Symbol {
         }
     }
 
-    /// Formats as standard TradingView symbol representation (e.g. "NASDAQ:AAPL").
+    /// Formats as standard TradingView symbol representation (e.g. "NASDAQ:AAPL" or bare "AAPL" if un-prefixed).
     pub fn to_exchange_symbol(&self) -> String {
-        format!("{}:{}", self.exchange, self.ticker)
+        if self.exchange.is_empty() {
+            self.ticker.clone()
+        } else {
+            format!("{}:{}", self.exchange, self.ticker)
+        }
     }
 
-    /// Resolves a symbol with smart fallback if parsing fails.
+    /// Synchronous resolution helper. Parses strictly if an exchange is present,
+    /// or preserves ticker with empty exchange without silent hardcoded guessing.
     pub fn resolve(s: &str) -> Self {
-        Self::smart_parse(s).unwrap_or_else(|_| Self::new("NASDAQ", s))
+        Self::parse_strict(s).unwrap_or_else(|_| Self::new("", s))
     }
 
-    /// Parses a symbol string with smart exchange resolution.
+    /// Strictly parses a symbol in the canonical format `"EXCHANGE:TICKER"` (e.g. `"NYSE:IBM"`).
     ///
-    /// If an exchange prefix is provided (e.g. `"BINANCE:BTCUSDT"`, `"NYSE:IBM"`), it is respected.
-    /// If only a ticker is passed (e.g. `"AAPL"`, `"BTCUSDT"`, `"EURUSD"`), the exchange is
-    /// intelligently inferred:
-    /// - Common crypto pairs ending in USDT/USDC/BTC -> `"BINANCE"`
-    /// - 6-character forex currency pairs -> `"FX_IDC"`
-    /// - General equity tickers -> `"NASDAQ"`
-    pub fn smart_parse(s: &str) -> Result<Self> {
+    /// Per constraint `CON-08`, un-prefixed tickers fail fast with [`Error::MissingExchange`]
+    /// rather than silently guessing an exchange venue.
+    pub fn parse_strict(s: &str) -> Result<Self> {
         let trimmed = s.trim();
         if trimmed.is_empty() {
             return Err(Error::InvalidSymbol("Symbol cannot be empty".to_string()));
         }
 
         if let Some((exch, sym)) = trimmed.split_once(':') {
-            if exch.trim().is_empty() || sym.trim().is_empty() {
+            let exch_trimmed = exch.trim();
+            let sym_trimmed = sym.trim();
+            if exch_trimmed.is_empty() || sym_trimmed.is_empty() {
                 return Err(Error::InvalidSymbol(s.to_string()));
             }
-            return Ok(Self::new(exch, sym));
+            return Ok(Self::new(exch_trimmed, sym_trimmed));
         }
 
-        let upper = trimmed.to_uppercase();
-        let inferred_exchange = if upper.ends_with("USDT")
-            || upper.ends_with("USDC")
-            || upper.ends_with("BUSD")
-            || upper == "BTC"
-            || upper == "ETH"
-            || upper == "SOL"
-        {
-            "BINANCE"
-        } else if is_forex_pair(&upper) {
-            "FX_IDC"
-        } else {
-            "NASDAQ"
-        };
-
-        Ok(Self::new(inferred_exchange, upper))
+        Err(Error::MissingExchange {
+            symbol: s.to_string(),
+        })
     }
-}
 
-/// Helper detecting standard 6-character currency pairs (e.g. EURUSD, GBPJPY).
-fn is_forex_pair(s: &str) -> bool {
-    if s.len() != 6 {
-        return false;
+    /// Parses a symbol string, applying an explicit consumer-configured default exchange if un-prefixed.
+    ///
+    /// Respects consumer choice by never guessing an exchange automatically.
+    pub fn parse_with_default(s: &str, default_exchange: &str) -> Result<Self> {
+        let trimmed = s.trim();
+        if trimmed.is_empty() {
+            return Err(Error::InvalidSymbol("Symbol cannot be empty".to_string()));
+        }
+
+        if let Some((exch, sym)) = trimmed.split_once(':') {
+            let exch_trimmed = exch.trim();
+            let sym_trimmed = sym.trim();
+            if exch_trimmed.is_empty() || sym_trimmed.is_empty() {
+                return Err(Error::InvalidSymbol(s.to_string()));
+            }
+            return Ok(Self::new(exch_trimmed, sym_trimmed));
+        }
+
+        if default_exchange.trim().is_empty() {
+            return Err(Error::MissingExchange {
+                symbol: s.to_string(),
+            });
+        }
+
+        Ok(Self::new(default_exchange, trimmed))
     }
-    const CURRENCIES: &[&str] = &[
-        "USD", "EUR", "GBP", "JPY", "AUD", "CAD", "CHF", "NZD", "CNH", "SGD", "HKD",
-    ];
-    let base = &s[..3];
-    let quote = &s[3..];
-    CURRENCIES.contains(&base) && CURRENCIES.contains(&quote)
+
+    /// Dynamically resolves the primary trading venue for an un-prefixed symbol
+    /// using TradingView's Global Scanner ranked by real 24h trading volume.
+    pub async fn resolve_dynamic(s: &str) -> Result<Self> {
+        crate::discovery::DiscoveryClient::new().resolve_primary_venue(s).await
+    }
+
+    /// Parses a symbol strictly requiring explicit exchange prefix.
+    ///
+    /// Deprecates silent exchange guessing per `CON-08`. For un-prefixed tickers,
+    /// returns [`Error::MissingExchange`]. Use [`Self::resolve_dynamic`] or
+    /// [`Self::parse_with_default`] instead.
+    pub fn smart_parse(s: &str) -> Result<Self> {
+        Self::parse_strict(s)
+    }
 }
 
 impl fmt::Display for Symbol {

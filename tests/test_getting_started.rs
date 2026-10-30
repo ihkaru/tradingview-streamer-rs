@@ -4,38 +4,30 @@ use tradingview_streamer::prelude::*;
 
 #[test]
 fn test_smart_symbol_resolution() {
-    // 1. Explicit symbols preserve exact exchange
-    let explicit_crypto = Symbol::smart_parse("BINANCE:BTCUSDT").unwrap();
+    // 1. Explicit symbols preserve exact exchange (CON-08 compliant)
+    let explicit_crypto = Symbol::parse_strict("BINANCE:BTCUSDT").unwrap();
     assert_eq!(explicit_crypto.exchange, "BINANCE");
     assert_eq!(explicit_crypto.ticker, "BTCUSDT");
 
-    let explicit_equity = Symbol::smart_parse("NYSE:IBM").unwrap();
+    let explicit_equity = Symbol::parse_strict("NYSE:IBM").unwrap();
     assert_eq!(explicit_equity.exchange, "NYSE");
     assert_eq!(explicit_equity.ticker, "IBM");
 
-    // 2. Inferred Crypto without exchange prefix
-    let auto_crypto = Symbol::smart_parse("BTCUSDT").unwrap();
-    assert_eq!(auto_crypto.exchange, "BINANCE");
-    assert_eq!(auto_crypto.ticker, "BTCUSDT");
+    // 2. Strict parsing rejects un-prefixed symbols to prevent dangerous hardcoded guessing
+    let strict_err = Symbol::parse_strict("IBM");
+    assert!(matches!(strict_err, Err(tradingview_streamer::Error::MissingExchange { .. })));
 
-    let auto_eth = Symbol::smart_parse("ETHUSDT").unwrap();
-    assert_eq!(auto_eth.exchange, "BINANCE");
+    let strict_aapl = Symbol::parse_strict("AAPL");
+    assert!(matches!(strict_aapl, Err(tradingview_streamer::Error::MissingExchange { .. })));
 
-    // 3. Inferred Forex 6-character currency pair
-    let auto_forex = Symbol::smart_parse("EURUSD").unwrap();
-    assert_eq!(auto_forex.exchange, "FX_IDC");
-    assert_eq!(auto_forex.ticker, "EURUSD");
+    // 3. Consumer-specified default exchange overrides (explicit choice)
+    let user_nasdaq = Symbol::parse_with_default("AAPL", "NASDAQ").unwrap();
+    assert_eq!(user_nasdaq.exchange, "NASDAQ");
+    assert_eq!(user_nasdaq.ticker, "AAPL");
 
-    let auto_gbpjpy = Symbol::smart_parse("GBPJPY").unwrap();
-    assert_eq!(auto_gbpjpy.exchange, "FX_IDC");
-
-    // 4. Inferred US Equities (default to NASDAQ)
-    let auto_aapl = Symbol::smart_parse("AAPL").unwrap();
-    assert_eq!(auto_aapl.exchange, "NASDAQ");
-    assert_eq!(auto_aapl.ticker, "AAPL");
-
-    let auto_tsla = Symbol::smart_parse("TSLA").unwrap();
-    assert_eq!(auto_tsla.exchange, "NASDAQ");
+    let user_nyse = Symbol::parse_with_default("IBM", "NYSE").unwrap();
+    assert_eq!(user_nyse.exchange, "NYSE");
+    assert_eq!(user_nyse.ticker, "IBM");
 }
 
 #[tokio::test]

@@ -19,14 +19,71 @@ use crate::types::{OhlcvCandle, QuoteUpdate, SessionType, StreamEvent, Symbol, T
 #[derive(Debug, Clone)]
 pub struct Ticker {
     symbol_str: String,
+    default_exchange: Option<String>,
+    strict: bool,
 }
 
 impl Ticker {
-    /// Creates a new Ticker for the given symbol (e.g. `"AAPL"`, `"NASDAQ:AAPL"`, `"BTCUSDT"`).
+    /// Creates a new Ticker for the given symbol (e.g. `"NASDAQ:AAPL"`, `"NYSE:IBM"`).
+    /// If an un-prefixed ticker is passed (e.g. `"IBM"`), methods dynamically resolve
+    /// the authentic primary venue via TradingView Scanner volume ranking.
     pub fn new(symbol: impl Into<String>) -> Self {
         Self {
             symbol_str: symbol.into(),
+            default_exchange: None,
+            strict: false,
         }
+    }
+
+    /// Creates a strict Ticker requiring an explicit exchange prefix (e.g. `"NYSE:IBM"`).
+    /// Un-prefixed symbols will fail fast with [`crate::error::Error::MissingExchange`].
+    pub fn new_strict(symbol: impl Into<String>) -> Self {
+        Self {
+            symbol_str: symbol.into(),
+            default_exchange: None,
+            strict: true,
+        }
+    }
+
+    /// Creates a Ticker with a consumer-configured default exchange for un-prefixed symbols.
+    pub fn new_with_default_exchange(
+        symbol: impl Into<String>,
+        default_exchange: impl Into<String>,
+    ) -> Self {
+        Self {
+            symbol_str: symbol.into(),
+            default_exchange: Some(default_exchange.into()),
+            strict: false,
+        }
+    }
+
+    /// Asynchronously resolves the primary trading venue via TradingView's Global Scanner,
+    /// returning a Ticker configured with the verified canonical exchange symbol (e.g. `"NYSE:IBM"`).
+    pub async fn resolve_dynamic(symbol: &str) -> Result<Self> {
+        let sym = DiscoveryClient::new().resolve_primary_venue(symbol).await?;
+        Ok(Self::new(sym.to_exchange_symbol()))
+    }
+
+    /// Resolves the canonical [`Symbol`] for this ticker respecting explicit, default,
+    /// or dynamic scanner resolution rules per `CON-08`.
+    pub async fn resolve_symbol(&self) -> Result<Symbol> {
+        if let Ok(sym) = Symbol::parse_strict(&self.symbol_str) {
+            return Ok(sym);
+        }
+
+        if self.strict {
+            return Err(crate::error::Error::MissingExchange {
+                symbol: self.symbol_str.clone(),
+            });
+        }
+
+        if let Some(ref def) = self.default_exchange {
+            return Symbol::parse_with_default(&self.symbol_str, def);
+        }
+
+        DiscoveryClient::new()
+            .resolve_primary_venue(&self.symbol_str)
+            .await
     }
 
     /// Fetches historical OHLCV candles using regular market hours.
@@ -36,7 +93,7 @@ impl Ticker {
     /// use tradingview_streamer::Ticker;
     ///
     /// # async fn run() -> Result<(), Box<dyn std::error::Error>> {
-    /// let bars = Ticker::new("AAPL").history("1m", 100).await?;
+    /// let bars = Ticker::new("NASDAQ:AAPL").history("1m", 100).await?;
     /// # Ok(())
     /// # }
     /// ```
@@ -53,7 +110,7 @@ impl Ticker {
     /// use tradingview_streamer::Ticker;
     ///
     /// # async fn run() -> Result<(), Box<dyn std::error::Error>> {
-    /// let bars = Ticker::new("AAPL").history_extended("1m", 100).await?;
+    /// let bars = Ticker::new("NASDAQ:AAPL").history_extended("1m", 100).await?;
     /// # Ok(())
     /// # }
     /// ```
@@ -63,7 +120,7 @@ impl Ticker {
 
     /// Deep historical backfill fetching thousands of bars backwards using automated pagination.
     pub async fn backfill(&self, timeframe: impl AsRef<str>, target_count: usize) -> Result<Vec<OhlcvCandle>> {
-        let sym = Symbol::resolve(&self.symbol_str);
+        let sym = self.resolve_symbol().await?;
         let tf = Timeframe::from_str(timeframe.as_ref())?;
         let pager = BackfillPager::new(sym, tf, SessionType::Regular, Duration::from_secs(30));
         pager.fetch_deep_history(target_count).await
@@ -71,7 +128,7 @@ impl Ticker {
 
     /// Deep historical backfill with Extended Trading Hours.
     pub async fn backfill_extended(&self, timeframe: impl AsRef<str>, target_count: usize) -> Result<Vec<OhlcvCandle>> {
-        let sym = Symbol::resolve(&self.symbol_str);
+        let sym = self.resolve_symbol().await?;
         let tf = Timeframe::from_str(timeframe.as_ref())?;
         let pager = BackfillPager::new(sym, tf, SessionType::Extended, Duration::from_secs(30));
         pager.fetch_deep_history(target_count).await
@@ -79,7 +136,8 @@ impl Ticker {
 
     /// Fetches server-evaluated technical rating consensus and indicators for the ticker.
     pub async fn technical_rating(&self, timeframe: impl AsRef<str>) -> Result<TechnicalSummary> {
-        TechnicalsClient::new().summary(&self.symbol_str, timeframe).await
+        let sym = self.resolve_symbol().await?;
+        TechnicalsClient::new().summary(sym.to_exchange_symbol(), timeframe).await
     }
 
     /// Fetches specific indicator values for the ticker on the given timeframe.
@@ -88,14 +146,16 @@ impl Ticker {
         indicators: &[impl AsRef<str>],
         timeframe: impl AsRef<str>,
     ) -> Result<std::collections::HashMap<String, f64>> {
+        let sym = self.resolve_symbol().await?;
         TechnicalsClient::new()
-            .indicators(&self.symbol_str, timeframe, indicators)
+            .indicators(sym.to_exchange_symbol(), timeframe, indicators)
             .await
     }
 
     /// Fetches comprehensive company profile and fundamental statistics.
     pub async fn overview(&self) -> Result<FundamentalOverview> {
-        FundamentalsClient::new().overview(&self.symbol_str).await
+        let sym = self.resolve_symbol().await?;
+        FundamentalsClient::new().overview(sym.to_exchange_symbol()).await
     }
 
     /// Fetches valuation multiples (P/E, P/B, P/S, EV/EBITDA).
@@ -112,12 +172,18 @@ impl Ticker {
 
     /// Fetches recent news stories and wire headlines for the ticker.
     pub async fn news(&self) -> Result<Vec<NewsArticle>> {
-        NewsClient::new().fetch_symbol_news(&self.symbol_str, 10).await
+        let sym = self.resolve_symbol().await?;
+        NewsClient::new().fetch_symbol_news(sym.to_exchange_symbol(), 10).await
     }
 
     /// Discovers all trading venues and global markets where the ticker trades.
     pub async fn venues(&self) -> Result<Vec<MarketVenue>> {
-        DiscoveryClient::new().discover_venues(&self.symbol_str).await
+        let ticker = if let Ok(s) = Symbol::parse_strict(&self.symbol_str) {
+            s.ticker
+        } else {
+            self.symbol_str.clone()
+        };
+        DiscoveryClient::new().discover_venues_exact(&ticker).await
     }
 
     /// Fetches published community trade ideas for the ticker.
@@ -137,9 +203,10 @@ impl Ticker {
 
     /// Returns a live real-time event stream for this ticker.
     pub async fn stream(&self, timeframe: impl AsRef<str>) -> Result<mpsc::Receiver<StreamEvent>> {
+        let sym = self.resolve_symbol().await?;
         let tf = Timeframe::from_str(timeframe.as_ref())?;
         TvStreamer::builder()
-            .symbol_str(&self.symbol_str)?
+            .symbol(sym)
             .timeframe(tf)
             .session(SessionType::Regular)
             .build()?
@@ -149,9 +216,10 @@ impl Ticker {
 
     /// Returns a live real-time event stream with Extended Trading Hours.
     pub async fn stream_extended(&self, timeframe: impl AsRef<str>) -> Result<mpsc::Receiver<StreamEvent>> {
+        let sym = self.resolve_symbol().await?;
         let tf = Timeframe::from_str(timeframe.as_ref())?;
         TvStreamer::builder()
-            .symbol_str(&self.symbol_str)?
+            .symbol(sym)
             .timeframe(tf)
             .session(SessionType::Extended)
             .build()?
@@ -162,13 +230,27 @@ impl Ticker {
     /// Returns an autonomous, resilient self-healing event stream with automatic reconnection and backoff.
     pub fn stream_resilient(&self, timeframe: impl AsRef<str>) -> Result<mpsc::Receiver<StreamEvent>> {
         let tf = Timeframe::from_str(timeframe.as_ref())?;
-        Ok(crate::supervisor::stream_resilient(&self.symbol_str, tf, SessionType::Regular))
+        let sym = if let Ok(s) = Symbol::parse_strict(&self.symbol_str) {
+            s.to_exchange_symbol()
+        } else if let Some(ref def) = self.default_exchange {
+            format!("{}:{}", def, self.symbol_str)
+        } else {
+            self.symbol_str.clone()
+        };
+        Ok(crate::supervisor::stream_resilient(&sym, tf, SessionType::Regular))
     }
 
     /// Returns a resilient self-healing event stream with Extended Trading Hours (ETH).
     pub fn stream_resilient_extended(&self, timeframe: impl AsRef<str>) -> Result<mpsc::Receiver<StreamEvent>> {
         let tf = Timeframe::from_str(timeframe.as_ref())?;
-        Ok(crate::supervisor::stream_resilient(&self.symbol_str, tf, SessionType::Extended))
+        let sym = if let Ok(s) = Symbol::parse_strict(&self.symbol_str) {
+            s.to_exchange_symbol()
+        } else if let Some(ref def) = self.default_exchange {
+            format!("{}:{}", def, self.symbol_str)
+        } else {
+            self.symbol_str.clone()
+        };
+        Ok(crate::supervisor::stream_resilient(&sym, tf, SessionType::Extended))
     }
 
     /// Fetches the latest real-time Level 1 quote for this ticker during regular market hours.
@@ -192,16 +274,18 @@ impl Ticker {
     }
 
     async fn quote_internal(&self, session: SessionType) -> Result<QuoteUpdate> {
+        let sym = self.resolve_symbol().await?;
         let streamer = TvStreamer::builder()
-            .symbol_str(&self.symbol_str)?
+            .symbol(sym)
             .session(session)
             .build()?;
         streamer.fetch_quote().await
     }
 
     async fn stream_quotes_internal(&self, session: SessionType) -> Result<mpsc::Receiver<QuoteUpdate>> {
+        let sym = self.resolve_symbol().await?;
         let streamer = TvStreamer::builder()
-            .symbol_str(&self.symbol_str)?
+            .symbol(sym)
             .session(session)
             .build()?;
         let mut event_rx = streamer.stream_events().await?;
@@ -221,9 +305,10 @@ impl Ticker {
     }
 
     async fn fetch_internal(&self, tf_str: &str, count: u32, session: SessionType) -> Result<Vec<OhlcvCandle>> {
+        let sym = self.resolve_symbol().await?;
         let tf = Timeframe::from_str(tf_str)?;
         let streamer = TvStreamer::builder()
-            .symbol_str(&self.symbol_str)?
+            .symbol(sym)
             .timeframe(tf)
             .session(session)
             .candle_count(count)

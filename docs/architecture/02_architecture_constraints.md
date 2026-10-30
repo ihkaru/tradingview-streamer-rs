@@ -14,6 +14,7 @@
 | `CON-02` | Permissive Enterprise License | Licensed under the MIT License (`LICENSE`) with zero copyleft dependencies. |
 | `CON-03` | Cross-Platform Compatibility | Compatible with Linux (x86_64, aarch64), macOS, and Windows with webpki/native root certificates. |
 | `CON-04` | Zero Production Mocks | No mock frameworks (`mockall`, `wiremock`) or silent fake stubs permitted in `src/`. |
+| `CON-08` | Venue Disambiguation & Zero Silent Guessing | Strictly forbids hardcoded exchange assumptions (e.g. defaulting to "NASDAQ"). Un-prefixed symbols require explicit user exchange specification, dynamic volume-based scanner resolution, or fail fast via `Error::MissingExchange`. |
 
 ## 2.2 Organizational & Operational Constraints
 

@@ -17,11 +17,12 @@ flowchart TD
         P003["003: Deep Historical Backfill & Timescale Paging [COMPLETED]"]
     end
 
-    subgraph S2["Phase 2: Discovery & Screener Intelligence (v0.8 - v0.11)"]
+    subgraph S2["Phase 2: Discovery & Screener Intelligence (v0.8 - v0.11, v0.17)"]
         P009["009: Financial Scanner & Multi-Market Screener Engine [COMPLETED]"]
         P010["010: Market Movers & Extended Hours Leaders (ETH) [COMPLETED]"]
         P011["011: Technical Summary Ratings & Indicator Matrix [COMPLETED]"]
         P013["013: Multi-Exchange Instrument Resolution & Arbitrage [COMPLETED]"]
+        P017["017: Dynamic Venue Disambiguation & Strict Resolution [COMPLETED]"]
     end
 
     subgraph S3["Phase 3: High-Throughput & Analytical Pipelines (v0.4 - v0.5)"]
@@ -42,7 +43,7 @@ flowchart TD
     end
 
     P001 --> P008 --> P002 --> P003
-    P001 --> P009 --> P010 --> P011 --> P013
+    P001 --> P009 --> P010 --> P011 --> P013 --> P017
     P003 --> P004 --> P005 --> P012
     P009 --> P014 --> P015 --> P016
     P005 --> P006 --> P007
@@ -70,6 +71,7 @@ flowchart TD
 | **[Phase 014](docs/phases/014_corporate_and_economic_calendars.md)** | Corporate Calendars (Earnings, Dividends, Macro) | `v0.14.0` | `COMPLETED` | Earnings surprise, dividend yield calendars, and macroeconomic releases. |
 | **[Phase 015](docs/phases/015_market_news_and_intelligence.md)** | Real-Time Market News & Editorial Intelligence | `v0.15.0` | `COMPLETED` | News headlines, publisher wires, timestamps, and referenced symbol tags. |
 | **[Phase 016](docs/phases/016_trader_sentiment_and_ideas.md)** | Community Trader Sentiment, Ideas & Micro-Posts | `v0.16.0` | `COMPLETED` | Community trade setups, price targets, bullish/bearish ratio, and minds posts. |
+| **[Phase 017](docs/phases/017_dynamic_venue_disambiguation_and_strict_resolution.md)** | Dynamic Venue Disambiguation & Strict Exchange Resolution | `v0.17.0` | `COMPLETED` | Resolution of `CON-08` & `ADR-04`: zero silent guessing, strict mode, dynamic scanner resolution. |
 
 ---
 

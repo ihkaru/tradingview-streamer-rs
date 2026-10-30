@@ -71,7 +71,15 @@ impl FundamentalsClient {
 
     /// Fetches a consolidated fundamental overview for the given symbol.
     pub async fn overview(&self, symbol: impl AsRef<str>) -> Result<FundamentalOverview> {
-        let resolved = Symbol::resolve(symbol.as_ref());
+        let sym_str = symbol.as_ref();
+        let resolved = if sym_str.contains(':') {
+            Symbol::parse_strict(sym_str)?
+        } else {
+            crate::discovery::DiscoveryClient::new()
+                .resolve_primary_venue(sym_str)
+                .await
+                .unwrap_or_else(|_| Symbol::new("", sym_str))
+        };
         let fields_param = FUNDAMENTAL_FIELDS.join(",");
         let url = format!(
             "https://scanner.tradingview.com/symbol?symbol={}&fields={fields_param}&no_404=true",

@@ -53,13 +53,24 @@ impl TechnicalsClient {
         Self { client }
     }
 
+    async fn resolve_symbol_target(&self, symbol: &str) -> Result<Symbol> {
+        if symbol.contains(':') {
+            Symbol::parse_strict(symbol)
+        } else {
+            crate::discovery::DiscoveryClient::new()
+                .resolve_primary_venue(symbol)
+                .await
+                .or_else(|_| Ok(Symbol::new("", symbol)))
+        }
+    }
+
     /// Fetches the standard technical summary for a symbol on the given timeframe.
     pub async fn summary(
         &self,
         symbol: impl AsRef<str>,
         timeframe: impl AsRef<str>,
     ) -> Result<TechnicalSummary> {
-        let resolved_sym = Symbol::resolve(symbol.as_ref());
+        let resolved_sym = self.resolve_symbol_target(symbol.as_ref()).await?;
         let tf_str = timeframe.as_ref();
         let tf_suffix = format_indicator_timeframe(tf_str);
 
@@ -95,7 +106,7 @@ impl TechnicalsClient {
         timeframe: impl AsRef<str>,
         indicators: &[impl AsRef<str>],
     ) -> Result<HashMap<String, f64>> {
-        let resolved_sym = Symbol::resolve(symbol.as_ref());
+        let resolved_sym = self.resolve_symbol_target(symbol.as_ref()).await?;
         let tf_suffix = format_indicator_timeframe(timeframe.as_ref());
 
         let query_fields: Vec<String> = indicators

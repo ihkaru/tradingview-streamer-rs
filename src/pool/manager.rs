@@ -33,10 +33,22 @@ impl ConnectionPool {
         }
     }
 
+    async fn resolve_pool_symbol(&self, symbol: &str) -> Result<String> {
+        if symbol.contains(':') {
+            let s = Symbol::parse_strict(symbol)?;
+            Ok(s.to_exchange_symbol())
+        } else {
+            let s = crate::discovery::DiscoveryClient::new()
+                .resolve_primary_venue(symbol)
+                .await
+                .unwrap_or_else(|_| Symbol::new("", symbol));
+            Ok(s.to_exchange_symbol())
+        }
+    }
+
     /// Subscribes a single symbol to the connection pool.
     pub async fn subscribe(&self, symbol: &str) -> Result<()> {
-        let sym_obj = Symbol::resolve(symbol);
-        let normalized = sym_obj.to_exchange_symbol();
+        let normalized = self.resolve_pool_symbol(symbol).await?;
 
         let mut state = self.state.lock().await;
         if state.symbol_to_worker.contains_key(&normalized) {
@@ -63,8 +75,7 @@ impl ConnectionPool {
 
     /// Unsubscribes a symbol from the connection pool.
     pub async fn unsubscribe(&self, symbol: &str) -> Result<()> {
-        let sym_obj = Symbol::resolve(symbol);
-        let normalized = sym_obj.to_exchange_symbol();
+        let normalized = self.resolve_pool_symbol(symbol).await?;
 
         let mut state = self.state.lock().await;
         if let Some(worker_idx) = state.symbol_to_worker.remove(&normalized) {

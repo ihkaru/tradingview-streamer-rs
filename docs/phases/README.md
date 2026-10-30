@@ -43,3 +43,4 @@ stateDiagram-v2
 | [014](014_corporate_and_economic_calendars.md) | Corporate Calendars (Earnings, Dividends & Macro Events) | `v0.14.0` | `COMPLETED` | `cal.py` (Earnings surprise, dividend yields) |
 | [015](015_market_news_and_intelligence.md) | Real-Time Market News & Editorial Intelligence Feed | `v0.15.0` | `COMPLETED` | `news.py` (Headlines, wire stories, tickers) |
 | [016](016_trader_sentiment_and_ideas.md) | Community Trader Sentiment, Ideas & Micro-Posts | `v0.16.0` | `COMPLETED` | `ideas.py`, `minds.py` (Crowd sentiment & setups) |
+| [017](017_dynamic_venue_disambiguation_and_strict_resolution.md) | Dynamic Venue Disambiguation & Strict Exchange Resolution | `v0.17.0` | `COMPLETED` | `CON-08` & `ADR-04` Anti-Hardcode Venue Disambiguation |

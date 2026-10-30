@@ -53,15 +53,19 @@ Adopt a Dual-Protocol transport design:
 
 ---
 
-## 9.4 ADR-04: yfinance-Grade Ergonomic Facade with Smart Exchange Inference
+## 9.4 ADR-04: Explicit Venue Specification & Dynamic Scanner Disambiguation (Anti-Hardcode)
 
 ### Context
-TradingView requires strict `EXCHANGE:SYMBOL` syntax (e.g. `NASDAQ:AAPL`), causing confusion and friction for developers accustomed to Python's `yfinance` where passing `"AAPL"` works instantly.
+TradingView requires `EXCHANGE:SYMBOL` syntax (e.g. `NASDAQ:AAPL`, `NYSE:IBM`). Initial heuristic attempts silently defaulted un-prefixed tickers to `"NASDAQ"` or `"BINANCE"`. In institutional quantitative finance, this hardcoded heuristic is hazardous: `IBM` trades on `NYSE` (defaulting to `NASDAQ:IBM` returns empty news and failed technicals), `BBCA` trades on `IDX`, and `BTCUSD` trades across multiple spot venues (Coinbase, Kraken, Bitstamp) with varying spreads. Silent hardcoding contaminates datasets and violates consumer choice.
 
 ### Decision
-Implement a smart exchange inference layer that deterministically maps plain symbols to their primary exchanges (`"AAPL"` -> `NASDAQ:AAPL`, `"BTCUSDT"` -> `BINANCE:BTCUSDT`), backed by 1-line top-level helpers (`tradingview_streamer::download()`).
+In accordance with `CON-08`, eliminate all silent hardcoded exchange assumptions:
+1. Canonical parsing strictly requires explicit `EXCHANGE:TICKER` syntax via `Symbol::parse_strict` (or `FromStr`), failing fast with `Error::MissingExchange` when omitted.
+2. Enable explicit consumer-configured default exchanges via `Ticker::new_with_default_exchange("AAPL", "NASDAQ")` and `Symbol::parse_with_default("AAPL", "NASDAQ")`.
+3. Provide dynamic, evidence-based venue disambiguation via `DiscoveryClient::resolve_primary_venue` and `Ticker::resolve_dynamic` backed by TradingView's live Global Scanner API (`scanner.tradingview.com/global/scan`), ranking candidates strictly by verifiable 24h trading volume.
+4. Support multi-venue inspection via `Ticker::venues()` so users can explicitly review and select their desired execution venue.
 
 ### Consequences
-- **Positive**: Zero-boilerplate developer experience matching the ergonomics of `yfinance`.
+- **Positive**: 100% data integrity, prevention of silent venue contamination, full consumer autonomy over execution venues, and authentic market discovery.
 - **Risks created**:
-  - `RISK-04`: Ambiguous tickers traded across multiple venues require explicit prefixes (`"NYSE:IBM"`).
+  - `RISK-04`: Dynamic resolution requires an initial HTTP lookup when an exchange prefix is omitted without a user default. Consumers seeking zero network overhead should use explicit prefixes (`"NYSE:IBM"`).

@@ -5,6 +5,7 @@ use reqwest::header::{HeaderMap, HeaderValue, CONTENT_TYPE, USER_AGENT};
 use serde_json::json;
 
 use crate::error::{Error, Result};
+use crate::types::Symbol;
 use super::types::{ArbitrageSpread, MarketVenue};
 
 const DEFAULT_USER_AGENT: &str =
@@ -49,15 +50,54 @@ impl DiscoveryClient {
         Self { client }
     }
 
+    /// Dynamically resolves the primary high-liquidity venue for a symbol.
+    ///
+    /// Unlike hardcoded exchange heuristics, this queries TradingView's Global Scanner
+    /// and selects the authentic venue strictly ranked by highest 24h trading volume.
+    pub async fn resolve_primary_venue(&self, symbol: &str) -> Result<Symbol> {
+        let trimmed = symbol.trim();
+        if let Some((exch, sym)) = trimmed.split_once(':') {
+            if !exch.trim().is_empty() && !sym.trim().is_empty() {
+                return Ok(Symbol::new(exch.trim(), sym.trim()));
+            }
+        }
+
+        let venues = self.discover_venues_exact(trimmed).await?;
+        if venues.is_empty() {
+            return Err(Error::DataNotFound(format!(
+                "No trading venues discovered for ticker '{trimmed}'"
+            )));
+        }
+
+        // Top venue by 24h volume is the primary listing
+        let primary = &venues[0];
+        let (exch, ticker) = if let Some((e, t)) = primary.symbol.split_once(':') {
+            (e, t)
+        } else {
+            (primary.exchange.as_str(), primary.name.as_str())
+        };
+
+        Ok(Symbol::new(exch, ticker))
+    }
+
+    /// Discovers all trading venues with exact ticker matching.
+    pub async fn discover_venues_exact(&self, ticker: &str) -> Result<Vec<MarketVenue>> {
+        self.scan_venues("equal", ticker).await
+    }
+
     /// Discovers all exchanges and markets where the given asset is traded.
     pub async fn discover_venues(&self, asset_name: &str) -> Result<Vec<MarketVenue>> {
+        self.scan_venues("match", asset_name).await
+    }
+
+    async fn scan_venues(&self, filter_op: &str, query: &str) -> Result<Vec<MarketVenue>> {
         let url = "https://scanner.tradingview.com/global/scan";
         let payload = json!({
             "filter": [
                 {
                     "left": "name",
-                    "operation": "match",
-                    "right": asset_name
+                    "operation": filter_op,
+                    "right": query
                 }
             ],
             "columns": DISCOVERY_COLUMNS,

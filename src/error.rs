@@ -21,9 +21,20 @@ pub enum Error {
     #[error("Serialization error: {0}")]
     Serialization(#[from] serde_json::Error),
 
-    /// Symbol format is invalid (e.g. missing exchange prefix).
+    /// Symbol format is invalid (e.g. empty or malformed).
     #[error("Invalid symbol format '{0}'. Expected format: 'EXCHANGE:TICKER' (e.g. 'NASDAQ:AAPL')")]
     InvalidSymbol(String),
+
+    /// Symbol format is missing an explicit exchange prefix when strict resolution is required.
+    #[error("Missing exchange prefix for '{symbol}'. Explicit exchange required (e.g. 'NYSE:{symbol}') or use dynamic resolution via Ticker::resolve_dynamic.")]
+    MissingExchange { symbol: String },
+
+    /// Symbol trades on multiple venues and no venue was explicitly selected.
+    #[error("Ambiguous symbol '{symbol}'. Multiple venues found: {candidates:?}. Please specify exchange explicitly.")]
+    AmbiguousSymbol {
+        symbol: String,
+        candidates: Vec<String>,
+    },
 
     /// Session establishment or negotiation failure.
     #[error("Session negotiation error: {0}")]

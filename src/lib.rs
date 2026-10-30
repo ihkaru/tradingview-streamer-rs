@@ -5,7 +5,9 @@
 //!
 //! ## Highlights & Features
 //! - **Minimal-Line Integration (`yfinance` style)**: Ingest candles in 1 line via [`download`] or [`Ticker`].
-//! - **Smart Exchange Inference**: Pass `"AAPL"` directly without needing `"NASDAQ:AAPL"`.
+//! - **Venue Disambiguation & Consumer Choice (`CON-08`)**: Full control over data venues via explicit prefixes
+//!   (`"NYSE:IBM"`), user-configured default exchanges, or live volume-ranked dynamic resolution
+//!   ([`Ticker::resolve_dynamic`]) with zero silent exchange guessing.
 //! - **Native Extended Trading Hours (ETH) Support**: Solves upstream Issue #63 from `mnwato/tradingview-scraper`
 //!   by supporting `SessionType::Extended` to receive pre-market (04:00 - 09:30 EST) and
 //!   after-hours (16:00 - 20:00 EST) OHLCV candles.
@@ -113,6 +115,24 @@ pub fn ticker(symbol: impl Into<String>) -> Ticker {
 /// ```
 pub async fn download(symbol: impl AsRef<str>) -> Result<Vec<OhlcvCandle>> {
     Ticker::new(symbol.as_ref()).history("1D", 100).await
+}
+
+/// Downloads recent daily OHLCV bars using an explicit user-configured default exchange.
+pub async fn download_with_default(
+    symbol: impl AsRef<str>,
+    default_exchange: impl AsRef<str>,
+) -> Result<Vec<OhlcvCandle>> {
+    Ticker::new_with_default_exchange(symbol.as_ref(), default_exchange.as_ref())
+        .history("1D", 100)
+        .await
+}
+
+/// Dynamically resolves the primary trading venue via TradingView volume rank and downloads bars.
+pub async fn download_dynamic(symbol: impl AsRef<str>) -> Result<Vec<OhlcvCandle>> {
+    Ticker::resolve_dynamic(symbol.as_ref())
+        .await?
+        .history("1D", 100)
+        .await
 }
 
 /// Downloads OHLCV bars including pre-market and after-hours (Extended Trading Hours).
