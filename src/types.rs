@@ -159,6 +159,58 @@ impl Symbol {
     pub fn to_exchange_symbol(&self) -> String {
         format!("{}:{}", self.exchange, self.ticker)
     }
+
+    /// Parses a symbol string with smart exchange resolution.
+    ///
+    /// If an exchange prefix is provided (e.g. `"BINANCE:BTCUSDT"`, `"NYSE:IBM"`), it is respected.
+    /// If only a ticker is passed (e.g. `"AAPL"`, `"BTCUSDT"`, `"EURUSD"`), the exchange is
+    /// intelligently inferred:
+    /// - Common crypto pairs ending in USDT/USDC/BTC -> `"BINANCE"`
+    /// - 6-character forex currency pairs -> `"FX_IDC"`
+    /// - General equity tickers -> `"NASDAQ"`
+    pub fn smart_parse(s: &str) -> Result<Self> {
+        let trimmed = s.trim();
+        if trimmed.is_empty() {
+            return Err(Error::InvalidSymbol("Symbol cannot be empty".to_string()));
+        }
+
+        if let Some((exch, sym)) = trimmed.split_once(':') {
+            if exch.trim().is_empty() || sym.trim().is_empty() {
+                return Err(Error::InvalidSymbol(s.to_string()));
+            }
+            return Ok(Self::new(exch, sym));
+        }
+
+        let upper = trimmed.to_uppercase();
+        let inferred_exchange = if upper.ends_with("USDT")
+            || upper.ends_with("USDC")
+            || upper.ends_with("BUSD")
+            || upper == "BTC"
+            || upper == "ETH"
+            || upper == "SOL"
+        {
+            "BINANCE"
+        } else if is_forex_pair(&upper) {
+            "FX_IDC"
+        } else {
+            "NASDAQ"
+        };
+
+        Ok(Self::new(inferred_exchange, upper))
+    }
+}
+
+/// Helper detecting standard 6-character currency pairs (e.g. EURUSD, GBPJPY).
+fn is_forex_pair(s: &str) -> bool {
+    if s.len() != 6 {
+        return false;
+    }
+    const CURRENCIES: &[&str] = &[
+        "USD", "EUR", "GBP", "JPY", "AUD", "CAD", "CHF", "NZD", "CNH", "SGD", "HKD",
+    ];
+    let base = &s[..3];
+    let quote = &s[3..];
+    CURRENCIES.contains(&base) && CURRENCIES.contains(&quote)
 }
 
 impl fmt::Display for Symbol {
@@ -171,11 +223,7 @@ impl FromStr for Symbol {
     type Err = Error;
 
     fn from_str(s: &str) -> Result<Self> {
-        let parts: Vec<&str> = s.split(':').collect();
-        if parts.len() != 2 || parts[0].trim().is_empty() || parts[1].trim().is_empty() {
-            return Err(Error::InvalidSymbol(s.to_string()));
-        }
-        Ok(Self::new(parts[0].trim(), parts[1].trim()))
+        Self::smart_parse(s)
     }
 }
 

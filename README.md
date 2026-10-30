@@ -56,68 +56,73 @@ tokio = { version = "1.43", features = ["full"] }
 
 ---
 
-## 🚀 Quickstart
+## 🚀 Quickstart (yfinance-Grade Ergonomics)
 
-### 1. Ingesting Extended Hours Candles (Pre & Post Market)
+### 1. The 1-Liner: Download Recent Bars Instantly
+```rust
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    // Zero-boilerplate: smart-detects "AAPL" -> "NASDAQ:AAPL"
+    let bars = tradingview_streamer::download("AAPL").await?;
+    println!("Downloaded {} bars for AAPL (Latest close: ${:.2})", bars.len(), bars.last().unwrap().close);
+    Ok(())
+}
+```
 
+### 2. The 2-Liner: Ticker with Extended Hours (Issue #63)
+Mirroring `yfinance.Ticker("AAPL")`:
+```rust
+use tradingview_streamer::Ticker;
+
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    // Includes pre-market (04:00-09:30) & after-hours (16:00-20:00 EST)
+    let bars = Ticker::new("AAPL").history_extended("1m", 100).await?;
+    println!("Received {} 1-min bars with Extended Trading Hours", bars.len());
+    Ok(())
+}
+```
+
+### 3. Smart Symbol Resolution (Zero Prefix Frustration)
+Pass tickers directly; `tradingview-streamer` infers the exchange automatically:
+- `"AAPL"` / `"TSLA"` $\rightarrow$ `NASDAQ:AAPL`
+- `"BTCUSDT"` / `"ETHUSDT"` $\rightarrow$ `BINANCE:BTCUSDT`
+- `"EURUSD"` / `"GBPJPY"` $\rightarrow$ `FX_IDC:EURUSD`
+- Or use explicit prefixes whenever needed: `"NYSE:IBM"`, `"BINANCE:SOLUSDT"`.
+
+### 4. Advanced: Fine-Grained Streamer Builder & Indicators
+For customized session tokens, timeouts, or indicator integration:
 ```rust
 use tradingview_streamer::{TvStreamer, SessionType, Timeframe};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    // Initialize streamer with Extended Hours enabled (Issue #63)
     let streamer = TvStreamer::builder()
         .symbol_str("NASDAQ:AAPL")?
         .timeframe(Timeframe::M1)
-        .session(SessionType::Extended) // Streams pre-market & after-hours bars
+        .session(SessionType::Extended) // Pre & post market bars
         .candle_count(50)
         .build()?;
 
-    println!("Fetching candles from TradingView...");
     let candles = streamer.fetch_candles().await?;
-
-    println!("Received {} candles:", candles.len());
-    for bar in candles.iter().take(5) {
-        println!(
-            "[{}] Open={:.2} High={:.2} Low={:.2} Close={:.2} Vol={:?}",
-            bar.timestamp, bar.open, bar.high, bar.low, bar.close, bar.volume
-        );
-    }
-
+    println!("Fetched {} custom candles", candles.len());
     Ok(())
 }
 ```
 
-### 2. Live Streaming Updates via Async Channels
-
+### 5. Live Real-Time Streaming via Async Channels
 ```rust
-use tradingview_streamer::{TvStreamer, SessionType, Timeframe, StreamEvent};
+use tradingview_streamer::{Ticker, StreamEvent};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let streamer = TvStreamer::builder()
-        .symbol_str("BINANCE:BTCUSDT")?
-        .timeframe(Timeframe::M5)
-        .session(SessionType::Regular)
-        .build()?;
+    let mut rx = Ticker::new("BTCUSDT").stream("5m").await?;
 
-    let mut event_rx = streamer.stream_events().await?;
-
-    while let Some(event) = event_rx.recv().await {
-        match event {
-            StreamEvent::Candles(bars) => {
-                println!("Received incremental update with {} bars", bars.len());
-            }
-            StreamEvent::Quote(quote) => {
-                println!("Quote update: Last Price={:?}", quote.last_price);
-            }
-            StreamEvent::Heartbeat(seq) => {
-                println!("Heartbeat keep-alive (seq: {})", seq);
-            }
-            _ => {}
+    while let Some(event) = rx.recv().await {
+        if let StreamEvent::Candles(bars) = event {
+            println!("Tick update: latest bar close={:.2}", bars.last().unwrap().close);
         }
     }
-
     Ok(())
 }
 ```
