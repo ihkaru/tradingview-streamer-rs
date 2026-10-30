@@ -51,6 +51,7 @@ pub mod scanner;
 pub mod session;
 pub mod social;
 pub mod streamer;
+pub mod supervisor;
 pub mod technicals;
 pub mod ticker;
 pub mod types;
@@ -78,6 +79,10 @@ pub use social::{
     SentimentReport, SocialClient, TradeIdea,
 };
 pub use streamer::{TvStreamer, TvStreamerBuilder};
+pub use supervisor::{
+    stream_resilient, CircuitBreaker, CircuitState, ExponentialBackoff, ProxyPool,
+    SupervisedStreamer, SupervisorConfig,
+};
 pub use technicals::{
     rating as technical_rating, rating_tf as technical_rating_tf, TechnicalRating,
     TechnicalSummary, TechnicalsClient,
@@ -169,12 +174,13 @@ pub mod prelude {
     pub use crate::{
         backfill, backfill_extended, download, download_extended, financials, ideas, minds, news,
         overview, portfolio_quotes, profile, quote, quote_extended, scanner, sentiment,
-        technical_rating, technical_rating_tf, ticker, valuation, CompanyProfile, ConnectionPool,
-        DividendEvent, DividendMetrics, EarningsEvent, Filter, FinancialMetrics,
+        stream_resilient, technical_rating, technical_rating_tf, ticker, valuation,
+        CircuitBreaker, CircuitState, CompanyProfile, ConnectionPool, DividendEvent,
+        DividendMetrics, EarningsEvent, ExponentialBackoff, Filter, FinancialMetrics,
         FundamentalOverview, IdeaSort, MarketVenue, MindAuthor, MindPost, MindsSort,
         MoverCategory, MoverRecord, MultiQuoteEvent, NewsArticle, OhlcvCandle, PoolConfig,
-        QuoteUpdate, ScannerMarket, SentimentBias, SentimentReport, SessionType, StreamEvent,
-        Symbol, SymbolRouter, TechnicalRating, TechnicalSummary, Ticker, Timeframe, TradeIdea,
-        TvStreamer, ValuationMetrics,
+        ProxyPool, QuoteUpdate, ScannerMarket, SentimentBias, SentimentReport, SessionType,
+        StreamEvent, SupervisedStreamer, SupervisorConfig, Symbol, SymbolRouter, TechnicalRating,
+        TechnicalSummary, Ticker, Timeframe, TradeIdea, TvStreamer, ValuationMetrics,
     };
 }

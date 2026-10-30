@@ -1,6 +1,6 @@
 # Phase 006: Resilient Supervisor, Circuit Breaker & Proxy Rotation
 
-> **Status**: `BACKLOG`  
+> **Status**: `COMPLETED`  
 > **Milestone**: `v0.6.0`  
 > **Target Release**: Q4 2027  
 > **Primary Focus**: Addressing `RISK-01` via autonomous reconnection, circuit breaking, and proxy mesh integration.
@@ -22,15 +22,16 @@ Phase 006 introduces a supervision actor that manages connection lifecycles, exp
 | Backoff & Jitter | `src/supervisor/backoff.rs` | Full-jitter exponential backoff algorithm avoiding thundering herd problems. |
 | Circuit Breaker | `src/supervisor/circuit.rs` | Halts requests when consecutive 429/403 responses exceed safety thresholds. |
 | Proxy Rotation | `src/supervisor/proxy.rs` | Rotates outgoing connections through user-provided SOCKS5/HTTP proxy pools. |
+| Resilient Test Suite | `tests/e2e_supervisor_recovery.rs` | Verification of backoff bounds, circuit breaker state machine, and live auto-reconnect. |
 
 ---
 
 ## 3. Acceptance Criteria
 
-- [ ] **AC-01**: Unexpected socket closures automatically trigger reconnection within configurable backoff limits.
-- [ ] **AC-02**: Active symbol subscriptions and chart sessions are automatically re-registered upon reconnect.
-- [ ] **AC-03**: Consecutive 429 rate limits trip the circuit breaker into Cooldown state without crashing.
-- [ ] **AC-04**: Proxy rotation seamlessly switches upstream egress IPs across reconnection cycles.
+- [x] **AC-01**: Unexpected socket closures automatically trigger reconnection within configurable backoff limits.
+- [x] **AC-02**: Active symbol subscriptions and chart sessions are automatically re-registered upon reconnect.
+- [x] **AC-03**: Consecutive 429 rate limits trip the circuit breaker into Cooldown state without crashing.
+- [x] **AC-04**: Proxy rotation seamlessly switches upstream egress IPs across reconnection cycles.
 
 ---
 

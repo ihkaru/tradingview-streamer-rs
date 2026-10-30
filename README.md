@@ -299,7 +299,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 }
 ```
 
-### 5. Live Real-Time Streaming via Async Channels
+### 16. Live Real-Time Streaming via Async Channels
 ```rust
 use tradingview_streamer::{Ticker, StreamEvent};
 
@@ -310,6 +310,25 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     while let Some(event) = rx.recv().await {
         if let StreamEvent::Candles(bars) = event {
             println!("Tick update: latest bar close={:.2}", bars.last().unwrap().close);
+        }
+    }
+    Ok(())
+}
+```
+
+### 17. Resilient Auto-Reconnecting Supervisor & Circuit Breaker
+Survives socket dropouts, rate limit spikes (HTTP 429), and proxy failovers:
+```rust
+use tradingview_streamer::{Ticker, StreamEvent};
+
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    // Automatically reconnects with exponential backoff and circuit breaker
+    let mut rx = Ticker::new("BTCUSDT").stream_resilient("1m")?;
+
+    while let Some(event) = rx.recv().await {
+        if let StreamEvent::Candles(bars) = event {
+            println!("Resilient bar update: close={:.2}", bars.last().unwrap().close);
         }
     }
     Ok(())

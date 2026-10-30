@@ -159,6 +159,18 @@ impl Ticker {
             .await
     }
 
+    /// Returns an autonomous, resilient self-healing event stream with automatic reconnection and backoff.
+    pub fn stream_resilient(&self, timeframe: impl AsRef<str>) -> Result<mpsc::Receiver<StreamEvent>> {
+        let tf = Timeframe::from_str(timeframe.as_ref())?;
+        Ok(crate::supervisor::stream_resilient(&self.symbol_str, tf, SessionType::Regular))
+    }
+
+    /// Returns a resilient self-healing event stream with Extended Trading Hours (ETH).
+    pub fn stream_resilient_extended(&self, timeframe: impl AsRef<str>) -> Result<mpsc::Receiver<StreamEvent>> {
+        let tf = Timeframe::from_str(timeframe.as_ref())?;
+        Ok(crate::supervisor::stream_resilient(&self.symbol_str, tf, SessionType::Extended))
+    }
+
     /// Fetches the latest real-time Level 1 quote for this ticker during regular market hours.
     pub async fn quote(&self) -> Result<QuoteUpdate> {
         self.quote_internal(SessionType::Regular).await
