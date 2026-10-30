@@ -7,7 +7,7 @@ use tokio::sync::mpsc;
 use crate::client::{ClientConfig, TvWebSocketClient, DEFAULT_TRADINGVIEW_WS_URL};
 use crate::error::{Error, Result};
 use crate::session::SessionTokens;
-use crate::types::{OhlcvCandle, SessionType, StreamEvent, Symbol, Timeframe};
+use crate::types::{OhlcvCandle, QuoteUpdate, SessionType, StreamEvent, Symbol, Timeframe};
 
 /// Ergonomic builder for constructing [`TvStreamer`].
 #[derive(Debug, Clone)]
@@ -195,6 +195,35 @@ impl TvStreamer {
                     Err(Error::Timeout)
                 }
             }
+        }
+    }
+
+    /// Fetches the latest real-time Level 1 quote update, waiting until received or timeout expires.
+    pub async fn fetch_quote(&self) -> Result<QuoteUpdate> {
+        let mut rx = self.stream_events().await?;
+        let quote_fut = async {
+            let mut snapshot = QuoteUpdate::default();
+            while let Some(evt) = rx.recv().await {
+                if let StreamEvent::Quote(quote) = evt {
+                    snapshot.merge(quote);
+                    if snapshot.last_price.is_some() {
+                        return Ok(snapshot);
+                    }
+                }
+            }
+            if snapshot.last_price.is_some() {
+                Ok(snapshot)
+            } else {
+                Err(Error::DataNotFound(format!(
+                    "No quote received for {}",
+                    self.symbol
+                )))
+            }
+        };
+
+        match tokio::time::timeout(self.timeout, quote_fut).await {
+            Ok(res) => res,
+            Err(_) => Err(Error::Timeout),
         }
     }
 }

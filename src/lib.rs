@@ -39,6 +39,7 @@
 pub mod client;
 pub mod error;
 pub mod protocol;
+pub mod quote;
 pub mod session;
 pub mod streamer;
 pub mod ticker;
@@ -92,10 +93,29 @@ pub async fn download_extended(
         .await
 }
 
+/// Fetches the latest real-time Level 1 quote snapshot for a symbol (1-liner).
+///
+/// # Example
+/// ```no_run
+/// # async fn doc() -> Result<(), Box<dyn std::error::Error>> {
+/// let q = tradingview_streamer::quote("AAPL").await?;
+/// println!("AAPL Last: ${:.2}, Change: {:.2}%", q.price(), q.change_percentage.unwrap_or(0.0));
+/// # Ok(())
+/// # }
+/// ```
+pub async fn quote(symbol: impl AsRef<str>) -> Result<QuoteUpdate> {
+    Ticker::new(symbol.as_ref()).quote().await
+}
+
+/// Fetches the latest real-time quote snapshot including pre-market and after-hours (Extended Trading Hours).
+pub async fn quote_extended(symbol: impl AsRef<str>) -> Result<QuoteUpdate> {
+    Ticker::new(symbol.as_ref()).quote_extended().await
+}
+
 /// Convenient prelude module re-exporting essential types and functions.
 pub mod prelude {
     pub use crate::{
-        download, download_extended, ticker,
+        download, download_extended, quote, quote_extended, ticker,
         OhlcvCandle, QuoteUpdate, SessionType, StreamEvent, Symbol, Ticker, Timeframe, TvStreamer,
     };
 }

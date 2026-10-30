@@ -132,19 +132,26 @@ fn extract_study_events(params: &[Value], events: &mut Vec<StreamEvent>) {
 fn extract_quote_update(params: &[Value]) -> Option<QuoteUpdate> {
     let payload = params.get(1)?.as_object()?;
     let v_map = payload.get("v")?.as_object()?;
-
-    let change = v_map.get("ch").and_then(Value::as_f64);
-    let change_percentage = v_map.get("chp").and_then(Value::as_f64);
-    let last_price = v_map.get("lp").and_then(Value::as_f64);
-    let last_price_time = v_map.get("lp_time").and_then(Value::as_i64);
-    let volume = v_map.get("volume").and_then(Value::as_f64);
+    let symbol = payload.get("n").and_then(Value::as_str).map(ToString::to_string);
 
     Some(QuoteUpdate {
-        change,
-        change_percentage,
-        last_price,
-        last_price_time,
-        volume,
+        symbol,
+        last_price: v_map.get("lp").and_then(Value::as_f64),
+        change: v_map.get("ch").and_then(Value::as_f64),
+        change_percentage: v_map.get("chp").and_then(Value::as_f64),
+        realtime_change: v_map.get("rtc").and_then(Value::as_f64),
+        realtime_change_percentage: v_map.get("rchp").and_then(Value::as_f64),
+        bid: v_map.get("bid").and_then(Value::as_f64),
+        ask: v_map.get("ask").and_then(Value::as_f64),
+        spread: v_map.get("spread").and_then(Value::as_f64),
+        volume: v_map.get("volume").and_then(Value::as_f64),
+        high_price: v_map.get("high_price").and_then(Value::as_f64),
+        low_price: v_map.get("low_price").and_then(Value::as_f64),
+        open_price: v_map.get("open_price").and_then(Value::as_f64),
+        prev_close_price: v_map.get("prev_close_price").and_then(Value::as_f64),
+        currency: v_map.get("currency_code").and_then(Value::as_str).map(ToString::to_string),
+        exchange: v_map.get("exchange").and_then(Value::as_str).map(ToString::to_string),
+        last_price_time: v_map.get("lp_time").and_then(Value::as_i64),
         raw_fields: Value::Object(v_map.clone()),
     })
 }

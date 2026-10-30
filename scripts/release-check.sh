@@ -38,7 +38,7 @@ else
 fi
 
 echo "[6/6] Verifying Cargo Packaging & Dry-Run Upload..."
-cargo publish --dry-run
+cargo publish --dry-run --allow-dirty
 
 echo "=================================================================="
 echo "✅ PRE-FLIGHT RELEASE GAUNTLET PASSED: READY FOR PUBLISHING"

@@ -246,22 +246,7 @@ pub struct OhlcvCandle {
     pub volume: Option<f64>,
 }
 
-/// Real-time quote snapshot update received from TradingView.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
-pub struct QuoteUpdate {
-    /// Price change value.
-    pub change: Option<f64>,
-    /// Price change percentage.
-    pub change_percentage: Option<f64>,
-    /// Last traded price.
-    pub last_price: Option<f64>,
-    /// Last price update timestamp.
-    pub last_price_time: Option<i64>,
-    /// Volume.
-    pub volume: Option<f64>,
-    /// Raw unparsed properties from quote update payload.
-    pub raw_fields: serde_json::Value,
-}
+pub use crate::quote::QuoteUpdate;
 
 /// Inbound stream event yielded by the TradingView connection.
 #[derive(Debug, Clone, PartialEq)]

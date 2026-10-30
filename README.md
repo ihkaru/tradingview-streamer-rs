@@ -88,7 +88,23 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 }
 ```
 
-### 3. Smart Symbol Resolution (Zero Prefix Frustration)
+### 3. Real-Time Level 1 Quotes & Ticker Tape Stream
+Instantly fetch price snapshots or stream sub-millisecond bid/ask and change updates:
+```rust
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    // 1-Liner Quote Snapshot:
+    let q = tradingview_streamer::quote("BTCUSDT").await?;
+    println!("BTC/USDT: ${:.2} (24h Change: {:.2}%)", q.price(), q.change_percentage.unwrap_or(0.0));
+
+    // Ticker with Extended Hours Quotes (pre/post-market price shifts):
+    let aapl_quote = tradingview_streamer::ticker("AAPL").quote_extended().await?;
+    println!("AAPL Price: ${:.2} (Real-time Change: {:?}%)", aapl_quote.price(), aapl_quote.realtime_change_percentage);
+    Ok(())
+}
+```
+
+### 4. Smart Symbol Resolution (Zero Prefix Frustration)
 Pass tickers directly; `tradingview-streamer` infers the exchange automatically:
 - `"AAPL"` / `"TSLA"` $\rightarrow$ `NASDAQ:AAPL`
 - `"BTCUSDT"` / `"ETHUSDT"` $\rightarrow$ `BINANCE:BTCUSDT`

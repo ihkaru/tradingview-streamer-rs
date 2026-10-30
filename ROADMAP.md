@@ -12,8 +12,8 @@ All initiatives follow a **Modular Numbered Phase Architecture** located in [`do
 flowchart TD
     subgraph S1["Phase 1: Real-Time Protocol Core (v0.1 - v0.3)"]
         P001["001: Core WebSocket Engine & Extended Hours (ETH) [COMPLETED]"]
-        P008["008: Quote Session & Level 1 Ticker Tape Streamer"]
-        P002["002: Technical Indicators & Built-in Studies Ingestion"]
+        P008["008: Quote Session & Level 1 Ticker Tape Streamer [COMPLETED]"]
+        P002["002: Technical Indicators & Built-in Studies Ingestion [COMPLETED]"]
         P003["003: Deep Historical Backfill & Timescale Paging"]
     end
 
@@ -55,13 +55,13 @@ flowchart TD
 | Phase ID | Title | Target Milestone | Status | Key Deliverable & Upstream Parity |
 |:---:|:---|:---:|:---:|:---|
 | **[Phase 001](docs/phases/001_core_streamer_and_extended_hours.md)** | Core WebSocket Engine & Extended Trading Hours | `v0.1.0` | `COMPLETED` | Fix for `mnwato/tradingview-scraper#63` via `SessionType::Extended`. |
-| **[Phase 002](docs/phases/002_technical_indicators_and_studies.md)** | Technical Indicators & Built-in Studies Ingestion | `v0.2.0` | `PLANNED` | Automated `create_study` RPC and multi-indicator streaming (`du`). |
+| **[Phase 002](docs/phases/002_technical_indicators_and_studies.md)** | Technical Indicators & Built-in Studies Ingestion | `v0.2.0` | `COMPLETED` | Automated `create_study` RPC and multi-indicator streaming (`du`). |
 | **[Phase 003](docs/phases/003_deep_historical_backfill_and_paging.md)** | Deep Historical Backfill & Timescale Paging | `v0.3.0` | `PLANNED` | Automated backward paging (`request_more_data`) for >10,000 bars. |
 | **[Phase 004](docs/phases/004_multi_symbol_multiplexing_and_pool.md)** | Multi-Symbol Multiplexing & Connection Pooling | `v0.4.0` | `BACKLOG` | Single-socket multi-ticker dispatch and dynamic subscription pool. |
 | **[Phase 005](docs/phases/005_simd_json_and_polars_arrow_export.md)** | Zero-Copy SIMD Deserialization & Polars/Arrow | `v0.5.0` | `BACKLOG` | Resolution of `DEBT-01` via SIMD JSON and Apache Arrow export. |
 | **[Phase 006](docs/phases/006_resilient_supervisor_and_proxy_mesh.md)** | Resilient Supervisor & Proxy Mesh Rotation | `v0.6.0` | `BACKLOG` | Resolution of `RISK-01` via exponential jitter and SOCKS5 proxy pool. |
 | **[Phase 007](docs/phases/007_python_pyo3_and_c_ffi_bindings.md)** | Python (PyO3) & C-ABI Foreign Function Interface | `v0.7.0` | `BACKLOG` | `pip install tradingview-streamer` native Python package. |
-| **[Phase 008](docs/phases/008_quote_session_and_ticker_tape.md)** | Real-Time Quote Session & Level 1 Ticker Tape | `v0.8.0` | `PLANNED` | High-frequency quote stream (`lp`, `bid`, `ask`, `rtc`, `chp`) via `qs_...`. |
+| **[Phase 008](docs/phases/008_quote_session_and_ticker_tape.md)** | Real-Time Quote Session & Level 1 Ticker Tape | `v0.8.0` | `COMPLETED` | High-frequency quote stream (`lp`, `bid`, `ask`, `rtc`, `chp`) via `qs_...`. |
 | **[Phase 009](docs/phases/009_scanner_and_screener_engine.md)** | Financial Scanner & Multi-Market Screener Engine | `v0.9.0` | `PLANNED` | REST scanner client for 19 markets with type-safe filter expressions. |
 | **[Phase 010](docs/phases/010_market_movers_and_extended_hours_leaders.md)** | Market Movers & Extended Hours Leaders (ETH) | `v0.10.0` | `PLANNED` | Top gainers/losers, most active, and pre/post-market market leaders. |
 | **[Phase 011](docs/phases/011_technical_summary_and_indicator_matrix.md)** | Technical Summary Ratings & Indicator Matrix | `v0.11.0` | `PLANNED` | Server-evaluated `Recommend.All` rating and 80+ indicator fields snapshot. |

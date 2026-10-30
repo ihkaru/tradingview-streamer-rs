@@ -10,7 +10,8 @@ pub const STANDARD_QUOTE_FIELDS: &[&str] = &[
     "language", "exchange", "fractional", "is_tradable", "lp",
     "lp_time", "minmov", "minmove2", "original_name", "pricescale",
     "pro_name", "short_name", "type", "update_mode", "volume",
-    "currency_code", "rchp", "rtc",
+    "currency_code", "rchp", "rtc", "bid", "ask", "spread",
+    "open_price", "high_price", "low_price", "prev_close_price",
 ];
 
 /// Encodes an outbound RPC function call into framed TradingView wire format.
@@ -122,6 +123,21 @@ pub fn switch_timezone(chart_session: &str, timezone: &str) -> String {
     encode_rpc("switch_timezone", json!([chart_session, timezone]))
 }
 
+/// Builds `create_study` command message to attach an indicator study to a chart session.
+pub fn create_study(
+    chart_session: &str,
+    study_id: &str,
+    study_alias: &str,
+    series_id: &str,
+    indicator: &str,
+    inputs: serde_json::Value,
+) -> String {
+    encode_rpc(
+        "create_study",
+        json!([chart_session, study_id, study_alias, series_id, indicator, inputs]),
+    )
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -176,5 +192,21 @@ mod tests {
         assert!(cmd.contains("create_series"));
         assert!(cmd.contains(r#""60""#)); // 1 hour -> "60"
         assert!(cmd.contains("500"));
+    }
+
+    #[test]
+    fn test_create_study_command_encoding() {
+        let cmd = create_study(
+            "cs_test123",
+            "st1",
+            "st1",
+            "sds_1",
+            "Volume@tv-basicstudies-246",
+            json!({"length": 20}),
+        );
+        assert!(cmd.starts_with("~m~"));
+        assert!(cmd.contains("create_study"));
+        assert!(cmd.contains("Volume@tv-basicstudies-246"));
+        assert!(cmd.contains(r#"\"length\":20"#) || cmd.contains(r#"{"length":20}"#));
     }
 }
