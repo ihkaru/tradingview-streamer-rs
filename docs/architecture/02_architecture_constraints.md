@@ -1,7 +1,7 @@
 # 02 Architecture Constraints
 
 > [!INFO] **Architecture Provenance & Freshness**
-> - **Verified Commit**: `d7b3d39` (branch: `main`)
+> - **Verified Commit**: `79db8b7` (branch: `main`)
 > - **Verified Timestamp**: `2026-10-30T18:45:58+07:00`
 > - **Tracked Paths**: `src/`, `tests/`, `Cargo.toml`
 > - **Drift Status**: `verified`
