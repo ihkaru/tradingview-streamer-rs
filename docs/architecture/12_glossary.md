@@ -1,7 +1,7 @@
 # 12 Glossary
 
 > [!INFO] **Architecture Provenance & Freshness**
-> - **Verified Commit**: `037ee86` (branch: `main`)
+> - **Verified Commit**: `e19a65f` (branch: `main`)
 > - **Verified Timestamp**: `2026-10-30T18:45:58+07:00`
 > - **Tracked Paths**: `src/`, `tests/`, `Cargo.toml`
 > - **Drift Status**: `verified`
