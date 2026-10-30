@@ -335,6 +335,28 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 }
 ```
 
+### 18. C-ABI Foreign Function Interface (Python `ctypes`, C/C++, Go)
+Exported `extern "C"` functions for high-speed foreign language quantitative integrations:
+```c
+#include <stdio.h>
+#include <stdint.h>
+
+typedef struct {
+    int64_t timestamp;
+    double open, high, low, close, volume;
+    int32_t has_volume;
+} FfiCandle;
+
+extern size_t tv_streamer_download_sync(const char* symbol, FfiCandle* out_candles, size_t max_count);
+
+int main() {
+    FfiCandle candles[10];
+    size_t count = tv_streamer_download_sync("AAPL", candles, 10);
+    printf("Ingested %zu bars via C-ABI. Latest close: $%.2f\n", count, candles[0].close);
+    return 0;
+}
+```
+
 ---
 
 ## 🔬 The Gauntlet: Verification & Testing

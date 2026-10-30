@@ -42,6 +42,7 @@ pub mod client;
 pub mod discovery;
 pub mod error;
 pub mod export;
+pub mod ffi;
 pub mod fundamentals;
 pub mod movers;
 pub mod news;
@@ -64,6 +65,7 @@ pub use client::{ClientConfig, TvWebSocketClient, DEFAULT_TRADINGVIEW_WS_URL};
 pub use discovery::{ArbitrageSpread, DiscoveryClient, MarketVenue};
 pub use error::{Error, Result};
 pub use export::ColumnarCandles;
+pub use ffi::{FfiArbitrage, FfiCandle, FfiQuote};
 pub use fundamentals::{
     financials, overview, profile, valuation, CompanyProfile, DividendMetrics, FinancialMetrics,
     FundamentalOverview, FundamentalsClient, ValuationMetrics,

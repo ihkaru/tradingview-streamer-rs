@@ -33,7 +33,7 @@ stateDiagram-v2
 | [004](004_multi_symbol_multiplexing_and_pool.md) | Multi-Symbol Multiplexing & Connection Pooling | `v0.4.0` | `COMPLETED` | High-concurrency socket pooling |
 | [005](005_simd_json_and_polars_arrow_export.md) | Zero-Copy Columnar Ingestion & Analytical Export | `v0.5.0` | `COMPLETED` | Structure-of-Arrays columnar format & export |
 | [006](006_resilient_supervisor_and_proxy_mesh.md) | Resilient Supervisor, Circuit Breaker & Proxy Rotation | `v0.6.0` | `COMPLETED` | `RISK-01` Proxy mesh & auto-healing |
-| [007](007_python_pyo3_and_c_ffi_bindings.md) | Python (PyO3) & C-ABI Foreign Function Interface | `v0.7.0` | `BACKLOG` | Native PyO3 bindings for Python ecosystem |
+| [007](007_python_pyo3_and_c_ffi_bindings.md) | C-ABI Foreign Function Interface & Multi-Language Bindings | `v0.7.0` | `COMPLETED` | Native C-ABI exports for C/C++, Python & Go |
 | [008](008_quote_session_and_ticker_tape.md) | Real-Time Quote Session & Level 1 Ticker Tape Streamer | `v0.8.0` | `COMPLETED` | `price.py` (`quote_create_session`, `lp`, `chp`, `rtc`) |
 | [009](009_scanner_and_screener_engine.md) | Financial Scanner & Multi-Market Screener Engine | `v0.9.0` | `COMPLETED` | `screener.py` (19 markets, rich filter expressions) |
 | [010](010_market_movers_and_extended_hours_leaders.md) | Market Movers & Extended Hours Leaders (ETH) | `v0.10.0` | `COMPLETED` | `market_movers.py` (Pre/Post-market gainers/losers) |
