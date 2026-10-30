@@ -92,7 +92,6 @@ impl TvWebSocketClient {
             .header("Sec-WebSocket-Version", "13")
             .header("Connection", "Upgrade")
             .header("Upgrade", "websocket")
-            .header("Sec-WebSocket-Extensions", "permessage-deflate; client_max_window_bits")
             .body(())
             .map_err(|e| Error::Protocol(format!("Failed to build HTTP request: {e}")))?;
 
@@ -123,6 +122,7 @@ impl TvWebSocketClient {
 
         tokio::spawn(async move {
             if let Err(e) = run_client_loop(ws_stream, config, tokens, sym, tf, session_type, candle_count, event_tx).await {
+                eprintln!("[CLIENT_LOOP_ERROR]: {e}");
                 tracing::warn!("TradingView client loop exited: {e}");
             }
         });
