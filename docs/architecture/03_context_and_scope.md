@@ -1,7 +1,7 @@
 # 03 Context and Scope
 
 > [!INFO] **Architecture Provenance & Freshness**
-> - **Verified Commit**: `79db8b7` (branch: `main`)
+> - **Verified Commit**: `c16220b` (branch: `main`)
 > - **Verified Timestamp**: `2026-10-30T18:45:58+07:00`
 > - **Tracked Paths**: `src/`, `tests/`, `Cargo.toml`
 > - **Drift Status**: `verified`
