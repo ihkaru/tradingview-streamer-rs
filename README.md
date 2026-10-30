@@ -230,6 +230,31 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 }
 ```
 
+### 12. Community Trader Sentiment, Ideas & Micro-Posts
+Ingest published trade ideas, community sentiment indicators, and Minds micro-discussions:
+```rust
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    // 1-Liner: Quantitative crowd sentiment score (-1.0 Bearish to +1.0 Bullish)
+    let sentiment = tradingview_streamer::sentiment("BTCUSD").await?;
+    println!("BTC Sentiment: {:?}, Score: {:.2} (Sample size: {})",
+        sentiment.consensus, sentiment.score, sentiment.total_sample_count);
+
+    // Published community trade setups & chart analysis
+    let ideas = tradingview_streamer::ideas("BTCUSD", 1).await?;
+    for idea in ideas.iter().take(3) {
+        println!("[{:?}] {} by @{} (Likes: {})", idea.sentiment, idea.title, idea.author, idea.likes_count);
+    }
+
+    // Minds community micro-discussions
+    let minds = tradingview_streamer::minds("NASDAQ:AAPL", 5).await?;
+    for post in minds {
+        println!("@{} posted: {} (Likes: {})", post.author.username, post.text, post.total_likes);
+    }
+    Ok(())
+}
+```
+
 ### 4. Smart Symbol Resolution (Zero Prefix Frustration)
 Pass tickers directly; `tradingview-streamer` infers the exchange automatically:
 - `"AAPL"` / `"TSLA"` $\rightarrow$ `NASDAQ:AAPL`

@@ -10,6 +10,7 @@ use crate::fundamentals::{
     FinancialMetrics, FundamentalOverview, FundamentalsClient, ValuationMetrics,
 };
 use crate::news::{NewsArticle, NewsClient};
+use crate::social::{IdeaSort, MindPost, MindsSort, SentimentReport, SocialClient, TradeIdea};
 use crate::streamer::TvStreamer;
 use crate::technicals::{TechnicalSummary, TechnicalsClient};
 use crate::types::{OhlcvCandle, QuoteUpdate, SessionType, StreamEvent, Symbol, Timeframe};
@@ -117,6 +118,21 @@ impl Ticker {
     /// Discovers all trading venues and global markets where the ticker trades.
     pub async fn venues(&self) -> Result<Vec<MarketVenue>> {
         DiscoveryClient::new().discover_venues(&self.symbol_str).await
+    }
+
+    /// Fetches published community trade ideas for the ticker.
+    pub async fn ideas(&self, page: u32) -> Result<Vec<TradeIdea>> {
+        SocialClient::new().fetch_ideas(&self.symbol_str, page, IdeaSort::Popular).await
+    }
+
+    /// Fetches community Minds micro-discussions for the ticker.
+    pub async fn minds(&self, limit: u32) -> Result<Vec<MindPost>> {
+        SocialClient::new().fetch_minds(&self.symbol_str, limit, MindsSort::Recent).await
+    }
+
+    /// Computes aggregated crowd sentiment score for the ticker.
+    pub async fn sentiment(&self) -> Result<SentimentReport> {
+        SocialClient::new().fetch_sentiment(&self.symbol_str).await
     }
 
     /// Returns a live real-time event stream for this ticker.

@@ -48,6 +48,7 @@ pub mod protocol;
 pub mod quote;
 pub mod scanner;
 pub mod session;
+pub mod social;
 pub mod streamer;
 pub mod technicals;
 pub mod ticker;
@@ -70,6 +71,10 @@ pub use scanner::{
     ScannerMarket, ScannerOptions, ScannerResponse, ScreenedItem, SortConfig, SortOrder,
 };
 pub use session::{generate_session_id, SessionTokens};
+pub use social::{
+    ideas, minds, sentiment, IdeaSort, MindAuthor, MindPost, MindsSort, SentimentBias,
+    SentimentReport, SocialClient, TradeIdea,
+};
 pub use streamer::{TvStreamer, TvStreamerBuilder};
 pub use technicals::{
     rating as technical_rating, rating_tf as technical_rating_tf, TechnicalRating,
@@ -160,11 +165,13 @@ pub async fn backfill_extended(
 /// Convenient prelude module re-exporting essential types and functions.
 pub mod prelude {
     pub use crate::{
-        backfill, backfill_extended, download, download_extended, financials, news, overview,
-        profile, quote, quote_extended, scanner, technical_rating, technical_rating_tf, ticker,
-        valuation, CompanyProfile, DividendEvent, DividendMetrics, EarningsEvent, Filter,
-        FinancialMetrics, FundamentalOverview, MarketVenue, MoverCategory, MoverRecord,
-        NewsArticle, OhlcvCandle, QuoteUpdate, ScannerMarket, SessionType, StreamEvent, Symbol,
-        TechnicalRating, TechnicalSummary, Ticker, Timeframe, TvStreamer, ValuationMetrics,
+        backfill, backfill_extended, download, download_extended, financials, ideas, minds, news,
+        overview, profile, quote, quote_extended, scanner, sentiment, technical_rating,
+        technical_rating_tf, ticker, valuation, CompanyProfile, DividendEvent, DividendMetrics,
+        EarningsEvent, Filter, FinancialMetrics, FundamentalOverview, IdeaSort, MarketVenue,
+        MindAuthor, MindPost, MindsSort, MoverCategory, MoverRecord, NewsArticle, OhlcvCandle,
+        QuoteUpdate, ScannerMarket, SentimentBias, SentimentReport, SessionType, StreamEvent,
+        Symbol, TechnicalRating, TechnicalSummary, Ticker, Timeframe, TradeIdea, TvStreamer,
+        ValuationMetrics,
     };
 }

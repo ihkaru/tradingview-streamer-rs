@@ -33,7 +33,7 @@ flowchart TD
     subgraph S4["Phase 4: Fundamental & Market Intelligence (v0.14 - v0.16)"]
         P014["014: Corporate Calendars (Earnings, Dividends, Macro) [COMPLETED]"]
         P015["015: Real-Time Market News & Editorial Intelligence Feed [COMPLETED]"]
-        P016["016: Community Trader Sentiment, Ideas & Micro-Posts"]
+        P016["016: Community Trader Sentiment, Ideas & Micro-Posts [COMPLETED]"]
     end
 
     subgraph S5["Phase 5: Ecosystem & Enterprise Hardening (v0.6 - v0.7)"]
@@ -69,7 +69,7 @@ flowchart TD
 | **[Phase 013](docs/phases/013_multi_exchange_discovery_and_arbitrage.md)** | Multi-Exchange Discovery & Arbitrage Engine | `v0.13.0` | `COMPLETED` | Global cross-exchange symbol mapping and real-time venue spread detection. |
 | **[Phase 014](docs/phases/014_corporate_and_economic_calendars.md)** | Corporate Calendars (Earnings, Dividends, Macro) | `v0.14.0` | `COMPLETED` | Earnings surprise, dividend yield calendars, and macroeconomic releases. |
 | **[Phase 015](docs/phases/015_market_news_and_intelligence.md)** | Real-Time Market News & Editorial Intelligence | `v0.15.0` | `COMPLETED` | News headlines, publisher wires, timestamps, and referenced symbol tags. |
-| **[Phase 016](docs/phases/016_trader_sentiment_and_ideas.md)** | Community Trader Sentiment, Ideas & Micro-Posts | `v0.16.0` | `BACKLOG` | Community trade setups, price targets, bullish/bearish ratio, and minds posts. |
+| **[Phase 016](docs/phases/016_trader_sentiment_and_ideas.md)** | Community Trader Sentiment, Ideas & Micro-Posts | `v0.16.0` | `COMPLETED` | Community trade setups, price targets, bullish/bearish ratio, and minds posts. |
 
 ---
 
