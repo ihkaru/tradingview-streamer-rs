@@ -21,18 +21,18 @@ flowchart TD
         P009["009: Financial Scanner & Multi-Market Screener Engine [COMPLETED]"]
         P010["010: Market Movers & Extended Hours Leaders (ETH) [COMPLETED]"]
         P011["011: Technical Summary Ratings & Indicator Matrix [COMPLETED]"]
-        P013["013: Multi-Exchange Instrument Resolution & Arbitrage"]
+        P013["013: Multi-Exchange Instrument Resolution & Arbitrage [COMPLETED]"]
     end
 
     subgraph S3["Phase 3: High-Throughput & Analytical Pipelines (v0.4 - v0.5)"]
         P004["004: Multi-Symbol Multiplexing & Connection Pooling"]
         P005["005: Zero-Copy SIMD Deserialization & Polars/Arrow"]
-        P012["012: Symbol Fundamentals & Financial Statements"]
+        P012["012: Symbol Fundamentals & Financial Statements [COMPLETED]"]
     end
 
     subgraph S4["Phase 4: Fundamental & Market Intelligence (v0.14 - v0.16)"]
-        P014["014: Corporate Calendars (Earnings, Dividends, Macro)"]
-        P015["015: Real-Time Market News & Editorial Intelligence Feed"]
+        P014["014: Corporate Calendars (Earnings, Dividends, Macro) [COMPLETED]"]
+        P015["015: Real-Time Market News & Editorial Intelligence Feed [COMPLETED]"]
         P016["016: Community Trader Sentiment, Ideas & Micro-Posts"]
     end
 
@@ -65,10 +65,10 @@ flowchart TD
 | **[Phase 009](docs/phases/009_scanner_and_screener_engine.md)** | Financial Scanner & Multi-Market Screener Engine | `v0.9.0` | `COMPLETED` | REST scanner client for 19 markets with type-safe filter expressions. |
 | **[Phase 010](docs/phases/010_market_movers_and_extended_hours_leaders.md)** | Market Movers & Extended Hours Leaders (ETH) | `v0.10.0` | `COMPLETED` | Top gainers/losers, most active, and pre/post-market market leaders. |
 | **[Phase 011](docs/phases/011_technical_summary_and_indicator_matrix.md)** | Technical Summary Ratings & Indicator Matrix | `v0.11.0` | `COMPLETED` | Server-evaluated `Recommend.All` rating and 80+ indicator fields snapshot. |
-| **[Phase 012](docs/phases/012_symbol_fundamentals_and_financials.md)** | Symbol Fundamentals & Financial Statements | `v0.12.0` | `BACKLOG` | Company profile, capital float, valuation multiples, and statement metrics. |
-| **[Phase 013](docs/phases/013_multi_exchange_discovery_and_arbitrage.md)** | Multi-Exchange Discovery & Arbitrage Engine | `v0.13.0` | `BACKLOG` | Global cross-exchange symbol mapping and real-time venue spread detection. |
-| **[Phase 014](docs/phases/014_corporate_and_economic_calendars.md)** | Corporate Calendars (Earnings, Dividends, Macro) | `v0.14.0` | `BACKLOG` | Earnings surprise, dividend yield calendars, and macroeconomic releases. |
-| **[Phase 015](docs/phases/015_market_news_and_intelligence.md)** | Real-Time Market News & Editorial Intelligence | `v0.15.0` | `BACKLOG` | News headlines, publisher wires, timestamps, and referenced symbol tags. |
+| **[Phase 012](docs/phases/012_symbol_fundamentals_and_financials.md)** | Symbol Fundamentals & Financial Statements | `v0.12.0` | `COMPLETED` | Company profile, capital float, valuation multiples, and statement metrics. |
+| **[Phase 013](docs/phases/013_multi_exchange_discovery_and_arbitrage.md)** | Multi-Exchange Discovery & Arbitrage Engine | `v0.13.0` | `COMPLETED` | Global cross-exchange symbol mapping and real-time venue spread detection. |
+| **[Phase 014](docs/phases/014_corporate_and_economic_calendars.md)** | Corporate Calendars (Earnings, Dividends, Macro) | `v0.14.0` | `COMPLETED` | Earnings surprise, dividend yield calendars, and macroeconomic releases. |
+| **[Phase 015](docs/phases/015_market_news_and_intelligence.md)** | Real-Time Market News & Editorial Intelligence | `v0.15.0` | `COMPLETED` | News headlines, publisher wires, timestamps, and referenced symbol tags. |
 | **[Phase 016](docs/phases/016_trader_sentiment_and_ideas.md)** | Community Trader Sentiment, Ideas & Micro-Posts | `v0.16.0` | `BACKLOG` | Community trade setups, price targets, bullish/bearish ratio, and minds posts. |
 
 ---

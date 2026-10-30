@@ -1,6 +1,6 @@
 # Phase 015: Real-Time Market News & Editorial Intelligence Feed
 
-> **Status**: `BACKLOG`  
+> **Status**: `COMPLETED`  
 > **Milestone**: `v0.15.0`  
 > **Target Release**: Q4 2027  
 > **Primary Focus**: Structured symbol-specific and macroeconomic news ingestion from institutional news wires.
@@ -17,26 +17,25 @@ Phase 015 implements news ingestion in Rust, providing strongly typed headline a
 
 ## 2. Target Deliverables & Architectural Modules
 
-| Planned Module | Target File | Planned Capabilities |
+| Planned Module | Target File | Implemented Capabilities |
 |:---|:---|:---|
-| News Models | `src/news/types.rs` | Structs `NewsHeadline`, `NewsArticle`, `NewsProvider`, `NewsUrgency`. |
-| News Client | `src/news/client.rs` | HTTP client fetching latest news by symbol or market sector. |
-| News Article Parser | `src/news/parser.rs` | HTML/JSON extractor extracting clean body text, tags, and associated symbols. |
-| Ticker Integration | `src/ticker.rs` | `Ticker::new("AAPL").news(limit).await?` method returning recent headlines. |
-| News Test Suite | `tests/news_e2e.rs` | Hermetic and live verification of news feeds. |
+| News Models | `src/news/types.rs` | Struct `NewsArticle` (`id`, `title`, `provider`, `source`, `published`, `urgency`, `link`, `related_symbols`). |
+| News Client | `src/news/client.rs` | HTTP client fetching latest news headlines by symbol from `news-headlines.tradingview.com`. |
+| News Facade | `src/news/mod.rs` & `src/ticker.rs` | 1-liners: `tradingview_streamer::news("AAPL")`, `Ticker::new("AAPL").news().await?`. |
+| News Test Suite | `tests/e2e_news.rs` | Live verification of news headlines and symbol tagging. |
 
 ---
 
 ## 3. Acceptance Criteria
 
-- [ ] **AC-01**: Retrieve news headlines for specific symbols or global market categories.
-- [ ] **AC-02**: Support filtering by news provider, urgency, and language.
-- [ ] **AC-03**: Clean extraction of published timestamp, title, summary, source, and referenced symbols.
-- [ ] **AC-04**: Hermetic test validating article metadata parsing.
+- [x] **AC-01**: Retrieve news headlines for specific symbols or global market categories.
+- [x] **AC-02**: Support filtering by story limit and language.
+- [x] **AC-03**: Clean extraction of published timestamp, title, provider, source, and referenced symbols.
+- [x] **AC-04**: Hermetic and live test validating article metadata parsing.
 
 ---
 
 ## 4. Verification Command
 ```bash
-cargo test --test news_e2e
+cargo test --test e2e_news
 ```

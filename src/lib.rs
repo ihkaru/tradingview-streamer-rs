@@ -37,9 +37,13 @@
 //! ```
 
 pub mod backfill;
+pub mod calendar;
 pub mod client;
+pub mod discovery;
 pub mod error;
+pub mod fundamentals;
 pub mod movers;
+pub mod news;
 pub mod protocol;
 pub mod quote;
 pub mod scanner;
@@ -51,9 +55,16 @@ pub mod types;
 
 // Re-exports of primary ergonomic interfaces
 pub use backfill::BackfillPager;
+pub use calendar::{CalendarClient, DividendEvent, EarningsEvent};
 pub use client::{ClientConfig, TvWebSocketClient, DEFAULT_TRADINGVIEW_WS_URL};
+pub use discovery::{ArbitrageSpread, DiscoveryClient, MarketVenue};
 pub use error::{Error, Result};
+pub use fundamentals::{
+    financials, overview, profile, valuation, CompanyProfile, DividendMetrics, FinancialMetrics,
+    FundamentalOverview, FundamentalsClient, ValuationMetrics,
+};
 pub use movers::{MoversClient, MoverCategory, MoverRecord};
+pub use news::{news, news_limit, NewsArticle, NewsClient};
 pub use scanner::{
     scanner, Filter, FilterCondition, FilterOperation, ScannerBuilder, ScannerClient,
     ScannerMarket, ScannerOptions, ScannerResponse, ScreenedItem, SortConfig, SortOrder,
@@ -149,10 +160,11 @@ pub async fn backfill_extended(
 /// Convenient prelude module re-exporting essential types and functions.
 pub mod prelude {
     pub use crate::{
-        backfill, backfill_extended, download, download_extended, quote, quote_extended,
-        scanner, technical_rating, technical_rating_tf, ticker,
-        Filter, MoverCategory, MoverRecord, OhlcvCandle, QuoteUpdate, ScannerMarket,
-        SessionType, StreamEvent, Symbol, TechnicalRating, TechnicalSummary, Ticker,
-        Timeframe, TvStreamer,
+        backfill, backfill_extended, download, download_extended, financials, news, overview,
+        profile, quote, quote_extended, scanner, technical_rating, technical_rating_tf, ticker,
+        valuation, CompanyProfile, DividendEvent, DividendMetrics, EarningsEvent, Filter,
+        FinancialMetrics, FundamentalOverview, MarketVenue, MoverCategory, MoverRecord,
+        NewsArticle, OhlcvCandle, QuoteUpdate, ScannerMarket, SessionType, StreamEvent, Symbol,
+        TechnicalRating, TechnicalSummary, Ticker, Timeframe, TvStreamer, ValuationMetrics,
     };
 }

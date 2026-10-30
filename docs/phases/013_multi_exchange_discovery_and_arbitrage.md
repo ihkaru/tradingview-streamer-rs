@@ -1,6 +1,6 @@
 # Phase 013: Multi-Exchange Instrument Resolution & Global Arbitrage Discovery
 
-> **Status**: `BACKLOG`  
+> **Status**: `COMPLETED`  
 > **Milestone**: `v0.13.0`  
 > **Target Release**: Q3 2027  
 > **Primary Focus**: Global cross-exchange symbol mapping, liquidity discovery, and cross-venue price disparity detection.
@@ -17,26 +17,26 @@ Phase 013 implements an automated cross-exchange discovery engine in Rust, allow
 
 ## 2. Target Deliverables & Architectural Modules
 
-| Planned Module | Target File | Planned Capabilities |
+| Planned Module | Target File | Implemented Capabilities |
 |:---|:---|:---|
-| Market Discovery Models | `src/markets/discovery.rs` | Struct `ExchangeMarket` (`exchange`, `symbol`, `price`, `volume_24h`, `currency`, `spread`). |
-| Cross-Exchange Scanner | `src/markets/scanner.rs` | Scanner querying global venue data for a base ticker. |
-| Arbitrage Analysis Helper | `src/markets/arbitrage.rs` | Evaluator computing min/max venue price spread and percentage delta. |
-| Ticker Integration | `src/ticker.rs` | `Ticker::new("BTC").markets().await?` returning all traded venues. |
-| Markets Test Suite | `tests/markets_e2e.rs` | Hermetic and live verification of multi-exchange discovery. |
+| Market Venue Models | `src/discovery/types.rs` | Struct `MarketVenue` (`exchange`, `symbol`, `price`, `volume`, `currency`, `security_type`). |
+| Arbitrage Model | `src/discovery/types.rs` | Struct `ArbitrageSpread` (`highest_venue`, `lowest_venue`, `spread_abs`, `spread_percent`). |
+| Discovery Client | `src/discovery/client.rs` | REST client scanning global venues and computing arbitrage divergence. |
+| Discovery Facade | `src/discovery/mod.rs` & `src/ticker.rs` | 1-liners: `tradingview_streamer::discovery::venues("BTCUSD")`, `Ticker::new("AAPL").venues().await?`. |
+| Discovery Test Suite | `tests/e2e_discovery.rs` | Live verification of venue discovery and cross-exchange arbitrage spreads. |
 
 ---
 
 ## 3. Acceptance Criteria
 
-- [ ] **AC-01**: Retrieve all traded venues for a given base asset or stock cross-listing.
-- [ ] **AC-02**: Provide sorted venue rankings by 24h liquidity/volume and tightest spread.
-- [ ] **AC-03**: Calculate cross-exchange arbitrage spreads with threshold alerts.
-- [ ] **AC-04**: Hermetic test validating cross-exchange market response decoding.
+- [x] **AC-01**: Retrieve all traded venues for a given base asset or stock cross-listing.
+- [x] **AC-02**: Provide sorted venue rankings by 24h liquidity/volume and tightest spread.
+- [x] **AC-03**: Calculate cross-exchange arbitrage spreads with threshold alerts.
+- [x] **AC-04**: Hermetic test validating cross-exchange market response decoding.
 
 ---
 
 ## 4. Verification Command
 ```bash
-cargo test --test markets_e2e
+cargo test --test e2e_discovery
 ```

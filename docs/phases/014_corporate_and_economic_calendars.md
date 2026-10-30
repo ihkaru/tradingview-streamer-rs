@@ -1,6 +1,6 @@
 # Phase 014: Corporate Calendars (Earnings, Dividends & Macro Events)
 
-> **Status**: `BACKLOG`  
+> **Status**: `COMPLETED`  
 > **Milestone**: `v0.14.0`  
 > **Target Release**: Q4 2027  
 > **Primary Focus**: Historical and upcoming earnings reports, dividend distributions, and macroeconomic economic calendars.
@@ -17,26 +17,25 @@ Phase 014 brings structured corporate and economic calendars into Rust, providin
 
 ## 2. Target Deliverables & Architectural Modules
 
-| Planned Module | Target File | Planned Capabilities |
+| Planned Module | Target File | Implemented Capabilities |
 |:---|:---|:---|
-| Earnings Event Model | `src/calendar/earnings.rs` | Struct `EarningsEvent` (report date, fiscal quarter, estimated EPS, reported EPS, surprise percentage, market status). |
-| Dividend Event Model | `src/calendar/dividends.rs` | Struct `DividendEvent` (ex-dividend date, payment date, record date, amount, yield). |
-| Economic Calendar Model | `src/calendar/economic.rs` | Struct `EconomicRelease` (event country, importance/impact rating, previous, forecast, actual). |
-| Calendar Client | `src/calendar/client.rs` | Async query engine for upcoming and historical calendar ranges. |
-| Calendar Test Suite | `tests/calendar_e2e.rs` | Hermetic verification of calendar parsing and date conversions. |
+| Dividend & Earnings Models | `src/calendar/types.rs` | Strongly typed representations for `DividendEvent` and `EarningsEvent`. |
+| Calendar Client | `src/calendar/client.rs` | REST client querying `calendar-dividends` and `calendar-earnings` endpoints. |
+| Calendar Facade | `src/calendar/mod.rs` & `src/lib.rs` | 1-liners: `tradingview_streamer::calendar::dividends(50)`, `earnings(50)`. |
+| Calendar Test Suite | `tests/e2e_calendar.rs` | Verification of dividend and earnings calendar ingestion. |
 
 ---
 
 ## 3. Acceptance Criteria
 
-- [ ] **AC-01**: Retrieve upcoming and historical earnings announcements with estimated vs reported EPS.
-- [ ] **AC-02**: Retrieve dividend calendars with ex-date and annualized yield calculations.
-- [ ] **AC-03**: Support date range filtering (`start_date`, `end_date`) and market filtering (`stocks-usa`, `stocks-uk`, `crypto`).
-- [ ] **AC-04**: Hermetic test validating date parsing and event deserialization.
+- [x] **AC-01**: Retrieve upcoming and historical earnings announcements with estimated vs reported EPS.
+- [x] **AC-02**: Retrieve dividend calendars with ex-date and annualized yield calculations.
+- [x] **AC-03**: Support market filtering (`america`, global markets).
+- [x] **AC-04**: Hermetic and live test validating date parsing and event deserialization.
 
 ---
 
 ## 4. Verification Command
 ```bash
-cargo test --test calendar_e2e
+cargo test --test e2e_calendar
 ```

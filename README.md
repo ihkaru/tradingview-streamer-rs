@@ -166,6 +166,70 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 }
 ```
 
+### 8. Symbol Fundamentals & Corporate Profile (yfinance .info Parity)
+Retrieve company profile, capital structure, valuation multiples, and statement metrics:
+```rust
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let overview = tradingview_streamer::overview("AAPL").await?;
+    println!("Company: {}, Sector: {:?}", overview.profile.company_name, overview.profile.sector);
+    println!("P/E: {:?}, Market Cap: {:?}", overview.valuation.price_earnings_ttm, overview.valuation.market_cap);
+    println!("Revenue: {:?}, Net Income: {:?}", overview.financials.total_revenue, overview.financials.net_income_fy);
+    Ok(())
+}
+```
+
+### 9. Corporate Calendars (Earnings & Dividends)
+Stream corporate action schedules, dividend records, and quarterly earnings surprises:
+```rust
+use tradingview_streamer::calendar;
+
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let divs = calendar::dividends(5).await?;
+    for d in divs {
+        println!("{}: Amount ${:?}, Yield: {:?}%", d.symbol, d.amount, d.yield_percent);
+    }
+
+    let earnings = calendar::earnings(5).await?;
+    for e in earnings {
+        println!("{}: EPS Actual: {:?}, Surprise: {:?}%", e.symbol, e.eps_actual, e.eps_surprise_percent);
+    }
+    Ok(())
+}
+```
+
+### 10. Real-Time News & Institutional Wires
+Fetch headline stories and article links from publisher wires (Reuters, Bloomberg, Seeking Alpha):
+```rust
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let articles = tradingview_streamer::news("AAPL").await?;
+    for story in articles {
+        println!("[{}] {} ({})", story.provider, story.title, story.source);
+    }
+    Ok(())
+}
+```
+
+### 11. Multi-Exchange Venue Discovery & Arbitrage Spreads
+Scan all global venues trading an asset and detect live price discrepancies:
+```rust
+use tradingview_streamer::discovery;
+
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let venues = discovery::venues("BTCUSD").await?;
+    println!("Discovered {} venues for BTCUSD", venues.len());
+
+    if let Some(arb) = discovery::arbitrage("BTCUSD").await? {
+        println!("BTC Arbitrage: High on {} (${:.2}) vs Low on {} (${:.2}) | Spread: {:.2}%",
+            arb.highest_venue, arb.highest_price, arb.lowest_venue, arb.lowest_price, arb.spread_percent);
+    }
+    Ok(())
+}
+```
+
 ### 4. Smart Symbol Resolution (Zero Prefix Frustration)
 Pass tickers directly; `tradingview-streamer` infers the exchange automatically:
 - `"AAPL"` / `"TSLA"` $\rightarrow$ `NASDAQ:AAPL`

@@ -4,7 +4,12 @@ use std::str::FromStr;
 use std::time::Duration;
 use tokio::sync::mpsc;
 use crate::backfill::BackfillPager;
+use crate::discovery::{DiscoveryClient, MarketVenue};
 use crate::error::Result;
+use crate::fundamentals::{
+    FinancialMetrics, FundamentalOverview, FundamentalsClient, ValuationMetrics,
+};
+use crate::news::{NewsArticle, NewsClient};
 use crate::streamer::TvStreamer;
 use crate::technicals::{TechnicalSummary, TechnicalsClient};
 use crate::types::{OhlcvCandle, QuoteUpdate, SessionType, StreamEvent, Symbol, Timeframe};
@@ -85,6 +90,33 @@ impl Ticker {
         TechnicalsClient::new()
             .indicators(&self.symbol_str, timeframe, indicators)
             .await
+    }
+
+    /// Fetches comprehensive company profile and fundamental statistics.
+    pub async fn overview(&self) -> Result<FundamentalOverview> {
+        FundamentalsClient::new().overview(&self.symbol_str).await
+    }
+
+    /// Fetches valuation multiples (P/E, P/B, P/S, EV/EBITDA).
+    pub async fn valuation(&self) -> Result<ValuationMetrics> {
+        let o = self.overview().await?;
+        Ok(o.valuation)
+    }
+
+    /// Fetches key financial profitability and liquidity ratios.
+    pub async fn financials(&self) -> Result<FinancialMetrics> {
+        let o = self.overview().await?;
+        Ok(o.financials)
+    }
+
+    /// Fetches recent news stories and wire headlines for the ticker.
+    pub async fn news(&self) -> Result<Vec<NewsArticle>> {
+        NewsClient::new().fetch_symbol_news(&self.symbol_str, 10).await
+    }
+
+    /// Discovers all trading venues and global markets where the ticker trades.
+    pub async fn venues(&self) -> Result<Vec<MarketVenue>> {
+        DiscoveryClient::new().discover_venues(&self.symbol_str).await
     }
 
     /// Returns a live real-time event stream for this ticker.
