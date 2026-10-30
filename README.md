@@ -50,8 +50,13 @@ Add this crate to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-tradingview-streamer = { path = "../tradingview-streamer-rs" }
+tradingview-streamer = "0.1"
 tokio = { version = "1.43", features = ["full"] }
+```
+
+Or install via `cargo add`:
+```bash
+cargo add tradingview-streamer
 ```
 
 ---
