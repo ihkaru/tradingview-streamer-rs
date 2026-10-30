@@ -1,7 +1,7 @@
 # 07 Deployment View
 
 > [!INFO] **Architecture Provenance & Freshness**
-> - **Verified Commit**: `0a0b0e2` (branch: `main`)
+> - **Verified Commit**: `4f38783` (branch: `main`)
 > - **Verified Timestamp**: `2026-10-30T18:45:58+07:00`
 > - **Tracked Paths**: `src/`, `tests/`, `Cargo.toml`
 > - **Drift Status**: `verified`
@@ -21,6 +21,15 @@ graph TD
             ScannerClient["ScannerClient"]
             QuoteStreamer["QuoteStreamer"]
             TechnicalsEngine["TechnicalsEngine"]
+            ConnectionPool["ConnectionPool"]
+            SupervisorEngine["SupervisorEngine"]
+            SocialEngine["SocialEngine"]
+            FundamentalsEngine["FundamentalsEngine"]
+            DiscoveryEngine["DiscoveryEngine"]
+            CalendarEngine["CalendarEngine"]
+            NewsEngine["NewsEngine"]
+            ColumnarExport["ColumnarExport"]
+            FfiEngine["FfiEngine"]
         end
         OSNetwork["OS Network Stack / TLS"]
     end
@@ -50,3 +59,12 @@ graph TD
 | ScannerClient | Async HTTP client with connection pool. | Reused HTTP/1.1 or HTTP/2 keep-alive socket. |
 | QuoteStreamer | Stream demultiplexer running on WebSocket task. | Minimal event dispatch overhead. |
 | TechnicalsEngine | Query mapper calling ScannerClient. | Stateless transformation layer. |
+| ConnectionPool | Managed socket pool balancing subscriptions across workers. | Adaptive WebSocket connections (<5MB RAM). |
+| SupervisorEngine | Autonomous supervisor actor with backoff and circuit breaker. | Zero idle cost, lightweight state machine. |
+| SocialEngine | HTTP scraper fetching ideas and Minds micro-posts. | Ephemeral REST requests via connection pool. |
+| FundamentalsEngine | HTTP client retrieving valuation and financial statement ratios. | Ephemeral REST requests via connection pool. |
+| DiscoveryEngine | Cross-exchange scanner resolving venues and arbitrage spreads. | Fast REST queries (<200ms latency). |
+| CalendarEngine | Corporate calendar query client for dividends and earnings. | Low-frequency REST polling (<1MB RAM). |
+| NewsEngine | Market news headlines stream with source wires. | Low-memory JSON parsing and event dispatch. |
+| ColumnarExport | Structure-of-Arrays columnar layout and CSV exporter. | Contiguous memory allocation, cache-aligned. |
+| FfiEngine | C-ABI foreign function interface statically exported in cdylib/rlib. | Zero runtime overhead, direct C calling convention. |

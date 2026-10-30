@@ -1,7 +1,7 @@
 # 05 Building Block View
 
 > [!INFO] **Architecture Provenance & Freshness**
-> - **Verified Commit**: `0a0b0e2` (branch: `main`)
+> - **Verified Commit**: `4f38783` (branch: `main`)
 > - **Verified Timestamp**: `2026-10-30T18:45:58+07:00`
 > - **Tracked Paths**: `src/`, `tests/`, `Cargo.toml`
 > - **Drift Status**: `verified`
@@ -16,6 +16,15 @@ graph TD
     TvStreamerFacade --> ScannerClient["ScannerClient"]
     TvStreamerFacade --> QuoteStreamer["QuoteStreamer"]
     TvStreamerFacade --> TechnicalsEngine["TechnicalsEngine"]
+    TvStreamerFacade --> ConnectionPool["ConnectionPool"]
+    TvStreamerFacade --> SupervisorEngine["SupervisorEngine"]
+    TvStreamerFacade --> SocialEngine["SocialEngine"]
+    TvStreamerFacade --> FundamentalsEngine["FundamentalsEngine"]
+    TvStreamerFacade --> DiscoveryEngine["DiscoveryEngine"]
+    TvStreamerFacade --> CalendarEngine["CalendarEngine"]
+    TvStreamerFacade --> NewsEngine["NewsEngine"]
+    TvStreamerFacade --> FfiEngine["FfiEngine"]
+    TvStreamerFacade --> ColumnarExport["ColumnarExport"]
     TvWebSocketClient --> ProtocolEngine["ProtocolEngine"]
     TvWebSocketClient -- "IF-01" --> TradingViewCluster["TradingView WebSocket Cluster"]
     ScannerClient -- "IF-03" --> TradingViewScanner["TradingView Scanner Service"]
@@ -34,6 +43,15 @@ graph TD
 | ScannerClient | `src/scanner/` | Dispatches typed filter queries to TradingView's 19-market screener API with async pagination. | Consumes `IF-03` |
 | QuoteStreamer | `src/quote/` | Handles Quote Session (`qs_...`) subscriptions for Level 1 ticker tapes (`lp`, `bid`, `ask`, `rtc`, `chp`). | Consumes `IF-01` |
 | TechnicalsEngine | `src/technicals/` | Fetches and maps server-side technical summary ratings (`Recommend.All`) and indicator snapshots. | Consumes `IF-03` |
+| ConnectionPool | `src/pool/` | Multiplexes 50+ tickers over managed WebSocket workers with dynamic subscription balancing. | Internal |
+| SupervisorEngine | `src/supervisor/` | Autonomous self-healing supervisor with full-jitter exponential backoff, circuit breaker, and proxy mesh. | Internal |
+| SocialEngine | `src/social/` | Scrapes published community trade ideas, directional sentiment bias, and Minds micro-discussions. | Consumes `IF-03` |
+| FundamentalsEngine | `src/fundamentals/` | Ingests company profile, float capitalization, valuation multiples, and quarterly financial ratios. | Consumes `IF-03` |
+| DiscoveryEngine | `src/discovery/` | Discovers global trading venues for a ticker and calculates real-time arbitrage spreads. | Consumes `IF-03` |
+| CalendarEngine | `src/calendar/` | Streams dividend schedule calendars and quarterly corporate earnings surprise releases. | Consumes `IF-03` |
+| NewsEngine | `src/news/` | Scrapes real-time market news headlines, source wires, urgency flags, and referenced symbols. | Consumes `IF-03` |
+| ColumnarExport | `src/export/` | Structure-of-Arrays (SoA) columnar representation and vectorized CSV analytical export. | Internal |
+| FfiEngine | `src/ffi/` | Exported `extern "C"` functions for C/C++, Python (`ctypes`), Go (`cgo`), and Zig. | Internal |
 
 ## 5.2 Level 2 - Core Subsystems
 
