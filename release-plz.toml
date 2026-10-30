@@ -1,0 +1,11 @@
+[workspace]
+# Enforce SemVer checks before creating release PR
+semver_check = true
+# Allow automated changelog generation
+changelog_update = true
+# Use conventional commit prefix format
+git_tag_name = "v{{ version }}"
+
+[[package]]
+name = "tradingview-streamer"
+changelog_path = "CHANGELOG.md"
