@@ -116,7 +116,9 @@ infisical run --projectId f13379e0-9661-4f8e-81ef-0e81d1502da1 --env dev -- <com
 ```
 
 ### 6.4 Automated Release Engine (`release-plz` + GitHub Actions)
-The repository uses [`release-plz`](https://release-plz.dev/) configured in `release-plz.toml` and `.github/workflows/release.yml`:
+The repository uses [`release-plz`](https://release-plz.dev/) configured in `release-plz.toml` and `ci/workflows/release.yml`:
+> [!NOTE]
+> Workflow templates are maintained under `ci/workflows/`. To activate automated GitHub Actions on your repository, ensure your GitHub token has the `workflow` scope (`gh auth refresh -s workflow`) and move them to `.github/workflows/`.
 1. **Pull Request Automation**: On every commit to `main`, `release-plz` analyzes new conventional commits, runs `cargo-semver-checks`, updates `CHANGELOG.md`, and increments the version in `Cargo.toml`.
 2. **Release PR**: A dedicated release PR is created or updated automatically by the bot.
 3. **Automated Publishing**: Once the maintainer merges the release PR, `release-plz` automatically:
