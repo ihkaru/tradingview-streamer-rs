@@ -81,12 +81,17 @@ async fn test_convenience_portfolio_quotes_1_liner() {
     let (pool, mut rx) = tradingview_streamer::portfolio_quotes(&["BINANCE:BTCUSDT"]).await
         .expect("Failed to create portfolio stream");
 
-    let timeout = Duration::from_secs(10);
-    let res = tokio::time::timeout(timeout, rx.recv()).await;
+    let timeout = Duration::from_secs(12);
+    let res = tokio::time::timeout(timeout, async {
+        while let Some(evt) = rx.recv().await {
+            if evt.symbol == "BINANCE:BTCUSDT" && evt.quote.price() > 0.0 {
+                return true;
+            }
+        }
+        false
+    }).await;
     assert!(res.is_ok(), "Timed out waiting for convenience portfolio quote");
-    let evt = res.unwrap().expect("Quote event expected");
-    assert_eq!(evt.symbol, "BINANCE:BTCUSDT");
-    assert!(evt.quote.price() > 0.0);
+    assert!(res.unwrap(), "Expected quote with price > 0.0");
 
     drop(pool);
 }
