@@ -51,6 +51,10 @@ pub enum Error {
     /// Requested data was not found or stream completed without data.
     #[error("Data not found: {0}")]
     DataNotFound(String),
+
+    /// Invalid parameter supplied by caller (e.g. invalid date range or period).
+    #[error("Invalid parameter: {0}")]
+    InvalidParameter(String),
 }
 
 /// Convenience type alias for operations producing [`Error`].

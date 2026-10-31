@@ -42,11 +42,18 @@ flowchart TD
         P007["007: C-ABI Foreign Function Interface & Multi-Language Bindings [COMPLETED]"]
     end
 
+    subgraph S6["Phase 6: Advanced Quant & yfinance Ergonomic Parity (v0.18 - v0.20)"]
+        P018["018: Total Return Dividend Adjustment & Date-Range Ingestion [IN PROGRESS]"]
+        P019["019: Multi-Ticker Batch Download & Columnar Portfolio [PLANNED]"]
+        P020["020: Curated Watchlist Baskets & Corporate Actions History [PLANNED]"]
+    end
+
     P001 --> P008 --> P002 --> P003
     P001 --> P009 --> P010 --> P011 --> P013 --> P017
     P003 --> P004 --> P005 --> P012
     P009 --> P014 --> P015 --> P016
     P005 --> P006 --> P007
+    P003 --> P018 --> P019 --> P020
 ```
 
 ---
@@ -72,6 +79,9 @@ flowchart TD
 | **[Phase 015](docs/phases/015_market_news_and_intelligence.md)** | Real-Time Market News & Editorial Intelligence | `v0.15.0` | `COMPLETED` | News headlines, publisher wires, timestamps, and referenced symbol tags. |
 | **[Phase 016](docs/phases/016_trader_sentiment_and_ideas.md)** | Community Trader Sentiment, Ideas & Micro-Posts | `v0.16.0` | `COMPLETED` | Community trade setups, price targets, bullish/bearish ratio, and minds posts. |
 | **[Phase 017](docs/phases/017_dynamic_venue_disambiguation_and_strict_resolution.md)** | Dynamic Venue Disambiguation & Strict Exchange Resolution | `v0.17.0` | `COMPLETED` | Resolution of `CON-08` & `ADR-04`: zero silent guessing, strict mode, dynamic scanner resolution. |
+| **[Phase 018](docs/phases/018_total_return_and_date_range_ingestion.md)** | Total Return Dividend Adjustment & Date-Range Ingestion | `v0.18.0` | `COMPLETED` | Resolution of `mnwato#57` & `#50`: `PriceAdjustment` (`auto_adjust`) and `DateRange`/`Period`. |
+| **[Phase 019](docs/phases/019_multi_ticker_batch_download_and_portfolio.md)** | Multi-Ticker Batch Download & Columnar Portfolio | `v0.19.0` | `PLANNED` | `yf.download(["AAPL", "MSFT"])` batch parallel ingestion with aligned timestamps. |
+| **[Phase 020](docs/phases/020_watchlist_baskets_and_corporate_actions.md)** | Curated Watchlist Baskets & Corporate Actions History | `v0.20.0` | `PLANNED` | `Watchlist::mag7()`, historical dividends, splits, and corporate actions. |
 
 ---
 

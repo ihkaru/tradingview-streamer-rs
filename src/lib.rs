@@ -51,6 +51,7 @@ pub mod news;
 pub mod pool;
 pub mod protocol;
 pub mod quote;
+pub mod range;
 pub mod scanner;
 pub mod session;
 pub mod social;
@@ -79,6 +80,7 @@ pub use scanner::{
     scanner, Filter, FilterCondition, FilterOperation, ScannerBuilder, ScannerClient,
     ScannerMarket, ScannerOptions, ScannerResponse, ScreenedItem, SortConfig, SortOrder,
 };
+pub use range::{DateRange, Period};
 pub use session::{generate_session_id, SessionTokens};
 pub use social::{
     ideas, minds, sentiment, IdeaSort, MindAuthor, MindPost, MindsSort, SentimentBias,
@@ -95,7 +97,7 @@ pub use technicals::{
 };
 pub use ticker::Ticker;
 pub use types::{
-    OhlcvCandle, QuoteUpdate, SessionType, StreamEvent, Symbol, Timeframe,
+    OhlcvCandle, PriceAdjustment, QuoteUpdate, SessionType, StreamEvent, Symbol, Timeframe,
 };
 
 /// Instantiates an ergonomic [`Ticker`] for the given symbol with smart exchange resolution.
@@ -193,18 +195,54 @@ pub async fn backfill_extended(
         .await
 }
 
+/// Downloads historical OHLCV bars within date boundaries (e.g. `"2025-01-01"` to `"2025-02-01"`).
+pub async fn download_range(
+    symbol: impl AsRef<str>,
+    timeframe: impl AsRef<str>,
+    start: &str,
+    end: &str,
+) -> Result<Vec<OhlcvCandle>> {
+    Ticker::new(symbol.as_ref())
+        .history_range(timeframe, start, end)
+        .await
+}
+
+/// Downloads historical OHLCV bars for a relative period (e.g. `"1d"`, `"5d"`, `"1mo"`, `"1y"`).
+pub async fn download_period(
+    symbol: impl AsRef<str>,
+    timeframe: impl AsRef<str>,
+    period: impl AsRef<str>,
+) -> Result<Vec<OhlcvCandle>> {
+    Ticker::new(symbol.as_ref())
+        .history_period(timeframe, period)
+        .await
+}
+
+/// Downloads historical OHLCV bars with explicit price adjustment (e.g. `PriceAdjustment::Dividends`).
+pub async fn download_adjusted(
+    symbol: impl AsRef<str>,
+    timeframe: impl AsRef<str>,
+    count: u32,
+    adjustment: PriceAdjustment,
+) -> Result<Vec<OhlcvCandle>> {
+    Ticker::new(symbol.as_ref())
+        .history_adjusted(timeframe, count, adjustment)
+        .await
+}
+
 /// Convenient prelude module re-exporting essential types and functions.
 pub mod prelude {
     pub use crate::{
-        backfill, backfill_extended, download, download_extended, financials, ideas, minds, news,
-        overview, portfolio_quotes, profile, quote, quote_extended, scanner, sentiment,
-        stream_resilient, technical_rating, technical_rating_tf, ticker, valuation,
-        CircuitBreaker, CircuitState, ColumnarCandles, CompanyProfile, ConnectionPool, DividendEvent,
-        DividendMetrics, EarningsEvent, ExponentialBackoff, Filter, FinancialMetrics,
-        FundamentalOverview, IdeaSort, MarketVenue, MindAuthor, MindPost, MindsSort,
-        MoverCategory, MoverRecord, MultiQuoteEvent, NewsArticle, OhlcvCandle, PoolConfig,
-        ProxyPool, QuoteUpdate, ScannerMarket, SentimentBias, SentimentReport, SessionType,
-        StreamEvent, SupervisedStreamer, SupervisorConfig, Symbol, SymbolRouter, TechnicalRating,
-        TechnicalSummary, Ticker, Timeframe, TradeIdea, TvStreamer, ValuationMetrics,
+        backfill, backfill_extended, download, download_adjusted, download_extended,
+        download_period, download_range, financials, ideas, minds, news, overview, portfolio_quotes,
+        profile, quote, quote_extended, scanner, sentiment, stream_resilient, technical_rating,
+        technical_rating_tf, ticker, valuation, CircuitBreaker, CircuitState, ColumnarCandles,
+        CompanyProfile, ConnectionPool, DateRange, DividendEvent, DividendMetrics, EarningsEvent,
+        ExponentialBackoff, Filter, FinancialMetrics, FundamentalOverview, IdeaSort, MarketVenue,
+        MindAuthor, MindPost, MindsSort, MoverCategory, MoverRecord, MultiQuoteEvent, NewsArticle,
+        OhlcvCandle, Period, PoolConfig, PriceAdjustment, ProxyPool, QuoteUpdate, ScannerMarket,
+        SentimentBias, SentimentReport, SessionType, StreamEvent, SupervisedStreamer,
+        SupervisorConfig, Symbol, SymbolRouter, TechnicalRating, TechnicalSummary, Ticker,
+        Timeframe, TradeIdea, TvStreamer, ValuationMetrics,
     };
 }

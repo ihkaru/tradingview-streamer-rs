@@ -2,7 +2,7 @@
 
 use serde_json::json;
 use crate::protocol::framing::format_frame;
-use crate::types::{SessionType, Timeframe};
+use crate::types::{PriceAdjustment, SessionType, Timeframe};
 
 /// Standard quote fields requested from TradingView.
 pub const STANDARD_QUOTE_FIELDS: &[&str] = &[
@@ -74,9 +74,9 @@ pub fn quote_fast_symbols(quote_session: &str, symbol: &str) -> String {
 /// TradingView defaults to `"session": "regular"` when omitted in `mnwato/tradingview-scraper`.
 /// Passing `"session": "extended"` instructs TradingView to stream Extended Trading Hours (ETH)
 /// including pre-market and after-hours bars.
-pub fn build_symbol_spec(symbol: &str, session: SessionType, adjustment: &str) -> String {
+pub fn build_symbol_spec(symbol: &str, session: SessionType, adjustment: PriceAdjustment) -> String {
     let spec = json!({
-        "adjustment": adjustment,
+        "adjustment": adjustment.as_str(),
         "symbol": symbol,
         "session": session.as_str()
     });
@@ -89,7 +89,7 @@ pub fn resolve_symbol(
     symbol_alias: &str,
     symbol: &str,
     session: SessionType,
-    adjustment: &str,
+    adjustment: PriceAdjustment,
 ) -> String {
     let spec = build_symbol_spec(symbol, session, adjustment);
     encode_rpc("resolve_symbol", json!([chart_session, symbol_alias, spec]))
@@ -159,7 +159,7 @@ mod tests {
 
     #[test]
     fn test_build_symbol_spec_regular_session() {
-        let spec = build_symbol_spec("NASDAQ:AAPL", SessionType::Regular, "splits");
+        let spec = build_symbol_spec("NASDAQ:AAPL", SessionType::Regular, PriceAdjustment::Splits);
         assert!(spec.starts_with('='));
         let parsed: serde_json::Value = serde_json::from_str(&spec[1..]).unwrap();
         assert_eq!(parsed["symbol"], "NASDAQ:AAPL");
@@ -169,7 +169,7 @@ mod tests {
 
     #[test]
     fn test_build_symbol_spec_extended_session_issue_63() {
-        let spec = build_symbol_spec("NASDAQ:AAPL", SessionType::Extended, "splits");
+        let spec = build_symbol_spec("NASDAQ:AAPL", SessionType::Extended, PriceAdjustment::Splits);
         assert!(spec.starts_with('='));
         let parsed: serde_json::Value = serde_json::from_str(&spec[1..]).unwrap();
         assert_eq!(parsed["symbol"], "NASDAQ:AAPL");
@@ -179,13 +179,21 @@ mod tests {
     }
 
     #[test]
+    fn test_build_symbol_spec_dividend_adjusted_issue_57() {
+        let spec = build_symbol_spec("NASDAQ:AAPL", SessionType::Regular, PriceAdjustment::Dividends);
+        assert!(spec.starts_with('='));
+        let parsed: serde_json::Value = serde_json::from_str(&spec[1..]).unwrap();
+        assert_eq!(parsed["adjustment"], "dividends");
+    }
+
+    #[test]
     fn test_resolve_symbol_command_encoding() {
         let cmd = resolve_symbol(
             "cs_test123",
             "sds_sym_1",
             "NASDAQ:AAPL",
             SessionType::Extended,
-            "splits",
+            PriceAdjustment::Splits,
         );
         assert!(cmd.starts_with("~m~"));
         assert!(cmd.contains("resolve_symbol"));

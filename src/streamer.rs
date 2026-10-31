@@ -7,7 +7,7 @@ use tokio::sync::mpsc;
 use crate::client::{ClientConfig, TvWebSocketClient, DEFAULT_TRADINGVIEW_WS_URL};
 use crate::error::{Error, Result};
 use crate::session::SessionTokens;
-use crate::types::{OhlcvCandle, QuoteUpdate, SessionType, StreamEvent, Symbol, Timeframe};
+use crate::types::{OhlcvCandle, PriceAdjustment, QuoteUpdate, SessionType, StreamEvent, Symbol, Timeframe};
 
 /// Ergonomic builder for constructing [`TvStreamer`].
 #[derive(Debug, Clone)]
@@ -15,6 +15,7 @@ pub struct TvStreamerBuilder {
     symbol: Option<Symbol>,
     timeframe: Timeframe,
     session_type: SessionType,
+    adjustment: PriceAdjustment,
     candle_count: u32,
     jwt_token: String,
     ws_url: String,
@@ -34,6 +35,7 @@ impl TvStreamerBuilder {
             symbol: None,
             timeframe: Timeframe::M1,
             session_type: SessionType::Regular,
+            adjustment: PriceAdjustment::Splits,
             candle_count: 100,
             jwt_token: "unauthorized_user_token".to_string(),
             ws_url: DEFAULT_TRADINGVIEW_WS_URL.to_string(),
@@ -76,6 +78,12 @@ impl TvStreamerBuilder {
         } else {
             SessionType::Regular
         };
+        self
+    }
+
+    /// Sets the price adjustment mode (`PriceAdjustment::Splits`, `PriceAdjustment::Dividends`, `PriceAdjustment::None`).
+    pub fn adjustment(mut self, adj: PriceAdjustment) -> Self {
+        self.adjustment = adj;
         self
     }
 
@@ -122,6 +130,7 @@ impl TvStreamerBuilder {
             symbol,
             timeframe: self.timeframe,
             session_type: self.session_type,
+            adjustment: self.adjustment,
             candle_count: self.candle_count,
             timeout: self.timeout,
             client: TvWebSocketClient::new(config),
@@ -134,6 +143,7 @@ pub struct TvStreamer {
     symbol: Symbol,
     timeframe: Timeframe,
     session_type: SessionType,
+    adjustment: PriceAdjustment,
     candle_count: u32,
     timeout: Duration,
     client: TvWebSocketClient,
@@ -148,10 +158,11 @@ impl TvStreamer {
     /// Subscribes to the live event stream for the configured symbol.
     pub async fn stream_events(&self) -> Result<mpsc::Receiver<StreamEvent>> {
         self.client
-            .start_streaming(
+            .start_streaming_adjusted(
                 &self.symbol,
                 &self.timeframe,
                 self.session_type,
+                self.adjustment,
                 self.candle_count,
             )
             .await

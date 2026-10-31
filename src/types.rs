@@ -58,6 +58,54 @@ impl FromStr for SessionType {
     }
 }
 
+/// Price adjustment mode for historical OHLCV candles (Issue #57).
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, Default)]
+#[serde(rename_all = "lowercase")]
+pub enum PriceAdjustment {
+    /// Adjusted for stock splits only (TradingView default).
+    #[default]
+    Splits,
+    /// Adjusted for stock splits and cash dividends (Total Return, yfinance auto_adjust=True).
+    Dividends,
+    /// Raw unadjusted prices without split or dividend adjustments.
+    None,
+}
+
+impl PriceAdjustment {
+    /// Returns the exact wire string value expected by TradingView protocol.
+    #[inline]
+    pub const fn as_str(&self) -> &'static str {
+        match self {
+            Self::Splits => "splits",
+            Self::Dividends => "dividends",
+            Self::None => "none",
+        }
+    }
+}
+
+impl fmt::Display for PriceAdjustment {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str(self.as_str())
+    }
+}
+
+impl FromStr for PriceAdjustment {
+    type Err = Error;
+
+    fn from_str(s: &str) -> Result<Self> {
+        match s.trim().to_lowercase().as_str() {
+            "splits" | "split" => Ok(Self::Splits),
+            "dividends" | "dividend" | "adj" | "auto" => Ok(Self::Dividends),
+            "none" | "raw" | "unadjusted" => Ok(Self::None),
+            _ => Err(Error::InvalidSymbol(format!(
+                "Invalid price adjustment mode '{s}'. Expected: 'splits', 'dividends', 'none'"
+            ))),
+        }
+    }
+}
+
+pub use crate::range::{DateRange, Period};
+
 /// Chart timeframes supported by TradingView.
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum Timeframe {
@@ -202,22 +250,12 @@ impl Symbol {
         if trimmed.is_empty() {
             return Err(Error::InvalidSymbol("Symbol cannot be empty".to_string()));
         }
-
-        if let Some((exch, sym)) = trimmed.split_once(':') {
-            let exch_trimmed = exch.trim();
-            let sym_trimmed = sym.trim();
-            if exch_trimmed.is_empty() || sym_trimmed.is_empty() {
-                return Err(Error::InvalidSymbol(s.to_string()));
-            }
-            return Ok(Self::new(exch_trimmed, sym_trimmed));
+        if let Ok(sym) = Self::parse_strict(trimmed) {
+            return Ok(sym);
         }
-
         if default_exchange.trim().is_empty() {
-            return Err(Error::MissingExchange {
-                symbol: s.to_string(),
-            });
+            return Err(Error::MissingExchange { symbol: s.to_string() });
         }
-
         Ok(Self::new(default_exchange, trimmed))
     }
 

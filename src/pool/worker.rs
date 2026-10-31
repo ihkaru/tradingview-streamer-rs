@@ -15,7 +15,7 @@ use crate::protocol::messages::{
 };
 use crate::protocol::parser::parse_message_payload;
 use crate::session::generate_session_id;
-use crate::types::StreamEvent;
+use crate::types::{PriceAdjustment, StreamEvent};
 
 pub enum WorkerCommand {
     Subscribe(String),
@@ -95,7 +95,7 @@ where
             Some(cmd) = cmd_rx.recv() => {
                 match cmd {
                     WorkerCommand::Subscribe(sym) => {
-                        let spec = build_symbol_spec(&sym, config.session_type, "splits");
+                        let spec = build_symbol_spec(&sym, config.session_type, PriceAdjustment::Splits);
                         let msg = quote_add_symbols(&qs, &spec);
                         ws.send(Message::Text(msg.into())).await.map_err(Error::WebSocket)?;
                         subscribed.insert(sym);

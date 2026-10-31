@@ -69,3 +69,22 @@ In accordance with `CON-08`, eliminate all silent hardcoded exchange assumptions
 - **Positive**: 100% data integrity, prevention of silent venue contamination, full consumer autonomy over execution venues, and authentic market discovery.
 - **Risks created**:
   - `RISK-04`: Dynamic resolution requires an initial HTTP lookup when an exchange prefix is omitted without a user default. Consumers seeking zero network overhead should use explicit prefixes (`"NYSE:IBM"`).
+
+---
+
+## 9.5 ADR-05: Total Return Dividend Adjustment & Date-Range Ingestion (yfinance Parity)
+
+### Context
+In quantitative research and backtesting, raw or split-only prices produce artificial drop-offs on ex-dividend dates (`mnwato#57`). Furthermore, financial analysts intuitively query data by calendar date windows (`start`, `end`) and period shorthands (`1mo`, `1y`, `ytd`, `max`) rather than raw bar counts (`mnwato#50`).
+
+### Decision
+Adopt first-class `yfinance` ergonomic parity:
+1. Introduce typed `PriceAdjustment` (`Splits`, `Dividends`, `None`), serializing to TradingView's `"adjustment": "dividends"` for total return data.
+2. Introduce `DateRange` and `Period` parsing supporting standard financial notation.
+3. Equip `BackfillPager::fetch_date_range` with automated pagination backwards until the requested `start_timestamp` is satisfied, followed by date window trimming.
+4. Expose high-level helpers `download_range`, `download_period`, and `Ticker::history_range`.
+
+### Consequences
+- **Positive**: Eliminates dividend cliff drops in quantitative backtests, provides 1:1 workflow compatibility for users transitioning from Python's `yfinance`.
+- **Risks created**:
+  - `RISK-06`: Deep date-range queries spanning several years trigger multiple paginated WebSocket requests, which require client-side timeout guards.

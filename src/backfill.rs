@@ -7,7 +7,7 @@ use crate::client::{ClientConfig, TvWebSocketClient};
 use crate::error::{Error, Result};
 use crate::protocol::messages::request_more_data;
 use crate::session::SessionTokens;
-use crate::types::{OhlcvCandle, SessionType, StreamEvent, Symbol, Timeframe};
+use crate::types::{OhlcvCandle, PriceAdjustment, SessionType, StreamEvent, Symbol, Timeframe};
 
 /// Paging coordinator for retrieving extensive historical datasets.
 #[derive(Debug, Clone)]
@@ -15,16 +15,28 @@ pub struct BackfillPager {
     symbol: Symbol,
     timeframe: Timeframe,
     session_type: SessionType,
+    adjustment: PriceAdjustment,
     timeout: Duration,
     client: TvWebSocketClient,
 }
 
 impl BackfillPager {
-    /// Creates a new backfill pager with the given settings.
+    /// Creates a new backfill pager with the given settings and default splits adjustment.
     pub fn new(
         symbol: Symbol,
         timeframe: Timeframe,
         session_type: SessionType,
+        timeout: Duration,
+    ) -> Self {
+        Self::new_with_adjustment(symbol, timeframe, session_type, PriceAdjustment::default(), timeout)
+    }
+
+    /// Creates a new backfill pager with explicit price adjustment mode (Splits, Dividends, None).
+    pub fn new_with_adjustment(
+        symbol: Symbol,
+        timeframe: Timeframe,
+        session_type: SessionType,
+        adjustment: PriceAdjustment,
         timeout: Duration,
     ) -> Self {
         let config = ClientConfig {
@@ -36,9 +48,16 @@ impl BackfillPager {
             symbol,
             timeframe,
             session_type,
+            adjustment,
             timeout,
             client: TvWebSocketClient::new(config),
         }
+    }
+
+    /// Overrides the price adjustment mode.
+    pub fn with_adjustment(mut self, adjustment: PriceAdjustment) -> Self {
+        self.adjustment = adjustment;
+        self
     }
 
     /// Attaches a custom WebSocket client configuration (e.g. for mock servers or custom endpoints).
@@ -52,10 +71,11 @@ impl BackfillPager {
         let initial_batch = (target_count as u32).min(5000);
         let (cmd_tx, mut event_rx, tokens) = self
             .client
-            .start_interactive_streaming(
+            .start_interactive_streaming_adjusted(
                 &self.symbol,
                 &self.timeframe,
                 self.session_type,
+                self.adjustment,
                 initial_batch,
             )
             .await?;
@@ -101,6 +121,74 @@ impl BackfillPager {
         }
 
         Ok(collected)
+    }
+
+    /// Iteratively fetches historical candles backwards until `start_ts` timestamp is reached,
+    /// then filters candles strictly within `[start_ts, end_ts]`.
+    pub async fn fetch_date_range(&self, start_ts: i64, end_ts: i64) -> Result<Vec<OhlcvCandle>> {
+        if start_ts > end_ts {
+            return Err(Error::InvalidParameter(
+                format!("start_ts ({start_ts}) cannot be greater than end_ts ({end_ts})")
+            ));
+        }
+
+        let (cmd_tx, mut event_rx, tokens) = self
+            .client
+            .start_interactive_streaming_adjusted(
+                &self.symbol,
+                &self.timeframe,
+                self.session_type,
+                self.adjustment,
+                5000,
+            )
+            .await?;
+
+        let mut collected: Vec<OhlcvCandle> = Vec::with_capacity(5000);
+        let mut stagnant_rounds = 0;
+        let mut last_min_ts: Option<i64> = None;
+        let deadline = tokio::time::Instant::now() + self.timeout;
+
+        while stagnant_rounds < 3 {
+            let got_new = self.drain_candle_stream(&mut event_rx, &mut collected).await;
+            self.dedup_and_sort(&mut collected);
+
+            let earliest_ts = collected.first().map(|c| c.timestamp);
+            if let Some(first_ts) = earliest_ts {
+                if first_ts <= start_ts {
+                    break;
+                }
+            }
+
+            if earliest_ts == last_min_ts && !got_new {
+                stagnant_rounds += 1;
+            } else {
+                stagnant_rounds = 0;
+                last_min_ts = earliest_ts;
+            }
+
+            if tokio::time::Instant::now() >= deadline {
+                break;
+            }
+
+            let cmd = request_more_data(&tokens.chart_session, &tokens.series_id, 5000);
+            if cmd_tx.send(cmd).await.is_err() {
+                break;
+            }
+        }
+
+        if collected.is_empty() {
+            return Err(Error::DataNotFound(format!(
+                "No historical candles received for {}",
+                self.symbol
+            )));
+        }
+
+        let filtered: Vec<OhlcvCandle> = collected
+            .into_iter()
+            .filter(|c| c.timestamp >= start_ts && c.timestamp <= end_ts)
+            .collect();
+
+        Ok(filtered)
     }
 
     async fn drain_candle_stream(

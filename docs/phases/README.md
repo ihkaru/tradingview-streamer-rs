@@ -44,3 +44,6 @@ stateDiagram-v2
 | [015](015_market_news_and_intelligence.md) | Real-Time Market News & Editorial Intelligence Feed | `v0.15.0` | `COMPLETED` | `news.py` (Headlines, wire stories, tickers) |
 | [016](016_trader_sentiment_and_ideas.md) | Community Trader Sentiment, Ideas & Micro-Posts | `v0.16.0` | `COMPLETED` | `ideas.py`, `minds.py` (Crowd sentiment & setups) |
 | [017](017_dynamic_venue_disambiguation_and_strict_resolution.md) | Dynamic Venue Disambiguation & Strict Exchange Resolution | `v0.17.0` | `COMPLETED` | `CON-08` & `ADR-04` Anti-Hardcode Venue Disambiguation |
+| [018](018_total_return_and_date_range_ingestion.md) | Total Return Dividend Adjustment & Date-Range Ingestion | `v0.18.0` | `COMPLETED` | `yfinance` parity: `PriceAdjustment` (`auto_adjust`) & `DateRange` |
+| [019](019_multi_ticker_batch_download_and_portfolio.md) | Multi-Ticker Batch Download & Columnar Portfolio | `v0.19.0` | `PLANNED` | `yf.download(["AAPL", "MSFT"])` batch ingestion & matrix |
+| [020](020_watchlist_baskets_and_corporate_actions.md) | Curated Watchlist Baskets & Corporate Actions History | `v0.20.0` | `PLANNED` | `Watchlist::mag7()`, historical dividends, splits, actions |

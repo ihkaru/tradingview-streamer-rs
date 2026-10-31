@@ -17,7 +17,7 @@ use crate::protocol::messages::{
 };
 use crate::protocol::parser::parse_message_payload;
 use crate::session::SessionTokens;
-use crate::types::{SessionType, StreamEvent, Symbol, Timeframe};
+use crate::types::{PriceAdjustment, SessionType, StreamEvent, Symbol, Timeframe};
 
 /// Default TradingView WebSocket endpoint.
 pub const DEFAULT_TRADINGVIEW_WS_URL: &str =
@@ -114,8 +114,20 @@ impl TvWebSocketClient {
         session_type: SessionType,
         candle_count: u32,
     ) -> Result<mpsc::Receiver<StreamEvent>> {
+        self.start_streaming_adjusted(symbol, timeframe, session_type, PriceAdjustment::default(), candle_count).await
+    }
+
+    /// Subscribes to symbol OHLCV data with configurable session type and price adjustment (splits vs dividends).
+    pub async fn start_streaming_adjusted(
+        &self,
+        symbol: &Symbol,
+        timeframe: &Timeframe,
+        session_type: SessionType,
+        adjustment: PriceAdjustment,
+        candle_count: u32,
+    ) -> Result<mpsc::Receiver<StreamEvent>> {
         let (_cmd_tx, event_rx, _tokens) = self
-            .start_interactive_streaming(symbol, timeframe, session_type, candle_count)
+            .start_interactive_streaming_adjusted(symbol, timeframe, session_type, adjustment, candle_count)
             .await?;
         Ok(event_rx)
     }
@@ -126,6 +138,18 @@ impl TvWebSocketClient {
         symbol: &Symbol,
         timeframe: &Timeframe,
         session_type: SessionType,
+        candle_count: u32,
+    ) -> Result<(mpsc::Sender<String>, mpsc::Receiver<StreamEvent>, SessionTokens)> {
+        self.start_interactive_streaming_adjusted(symbol, timeframe, session_type, PriceAdjustment::default(), candle_count).await
+    }
+
+    /// Starts an interactive streaming session with explicit price adjustment mode.
+    pub async fn start_interactive_streaming_adjusted(
+        &self,
+        symbol: &Symbol,
+        timeframe: &Timeframe,
+        session_type: SessionType,
+        adjustment: PriceAdjustment,
         candle_count: u32,
     ) -> Result<(mpsc::Sender<String>, mpsc::Receiver<StreamEvent>, SessionTokens)> {
         let ws_stream = self.connect().await?;
@@ -145,6 +169,7 @@ impl TvWebSocketClient {
                 sym,
                 tf,
                 session_type,
+                adjustment,
                 candle_count,
                 event_tx,
                 cmd_rx,
@@ -167,6 +192,7 @@ async fn run_client_loop(
     symbol: Symbol,
     timeframe: Timeframe,
     session_type: SessionType,
+    adjustment: PriceAdjustment,
     candle_count: u32,
     event_tx: mpsc::Sender<StreamEvent>,
     mut cmd_rx: mpsc::Receiver<String>,
@@ -178,6 +204,7 @@ async fn run_client_loop(
         &symbol,
         &timeframe,
         session_type,
+        adjustment,
         candle_count,
     )
     .await?;
@@ -259,13 +286,14 @@ async fn send_subscription_messages<S>(
     symbol: &Symbol,
     timeframe: &Timeframe,
     session_type: SessionType,
+    adjustment: PriceAdjustment,
     candle_count: u32,
 ) -> Result<()>
 where
     S: SinkExt<Message, Error = tokio_tungstenite::tungstenite::Error> + Unpin,
 {
     let exchange_symbol = symbol.to_exchange_symbol();
-    let spec = crate::protocol::messages::build_symbol_spec(&exchange_symbol, session_type, "splits");
+    let spec = crate::protocol::messages::build_symbol_spec(&exchange_symbol, session_type, adjustment);
 
     let msgs = [
         quote_add_symbols(&tokens.quote_session, &spec),
@@ -274,7 +302,7 @@ where
             &tokens.symbol_alias,
             &exchange_symbol,
             session_type,
-            "splits",
+            adjustment,
         ),
         create_series(
             &tokens.chart_session,

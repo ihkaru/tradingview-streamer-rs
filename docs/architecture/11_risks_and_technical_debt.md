@@ -15,6 +15,7 @@
 | `RISK-03` | TradingView Scanner REST Rate Limiting | High | Medium | Cache screener responses with configurable TTL and integrate HTTP exponential backoff. |
 | `RISK-04` | Dynamic Venue Lookup Network Overhead & Scanner Rate Limits | Medium | Low | Mitigated via `CON-08`: explicit `EXCHANGE:TICKER` prefixes bypass network resolution; cached volume lookups and client timeouts prevent latency spikes. |
 | `RISK-05` | Cross-Exchange Venue Ambiguity & Ticker Collisions | High | Medium | Mitigated via `CON-08` and `ADR-04`: strict `EXCHANGE:TICKER` validation, consumer default exchanges, and dynamic scanner resolution based on 24h trading volume. |
+| `RISK-06` | Deep Date-Range Timescale Paging Latency | Medium | Low | Mitigated in Phase 018: stagnation detection stops paging when data boundaries are reached; client timeouts protect against hanging requests. |
 
 ## 11.2 Technical Debt Ledger
 
